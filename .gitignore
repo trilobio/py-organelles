@@ -1,0 +1,4 @@
+__pycache__
+.pytest_cache/
+software/python/__pycache__/aceta_pb2.cpython-310.pyc
+software/python/__pycache__/aceta_pb2_grpc.cpython-310.pyc
