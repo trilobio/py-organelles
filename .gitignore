@@ -1,4 +1,5 @@
 __pycache__
+*.sw*
 .mypy_cache
 .pytest_cache/
 software/python/__pycache__
