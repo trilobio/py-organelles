@@ -1,6 +1,7 @@
 __pycache__
 *.sw*
 .mypy_cache
+*.egg-info/
 .pytest_cache/
 software/python/__pycache__
 software/python/.coverage
@@ -8,3 +9,4 @@ software/python/.mypy_cache
 *-backups
 *.sw*
 hash.h
+.python-version
