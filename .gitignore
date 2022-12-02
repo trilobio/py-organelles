@@ -12,3 +12,6 @@ software/python/.mypy_cache
 *.sw*
 hash.h
 .python-version
+
+
+node_modules
