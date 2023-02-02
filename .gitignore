@@ -12,7 +12,7 @@ software/python/.mypy_cache
 *.sw*
 hash.h
 .python-version
-
+*.tmp
 
 node_modules
 
