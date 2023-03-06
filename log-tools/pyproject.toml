@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "log-tools"
+version = "0.1.0"
+description = "Various python logging tools for internal Trilobio use."
+authors = ["Your Name <you@example.com>"]
+license = "n"
+readme = "README.md"
+packages = [{include = "log_tools"}]
+
+[tool.poetry.dependencies]
+python = ">=3.10,<3.12"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
