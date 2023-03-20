@@ -10,7 +10,6 @@ software/python/.mypy_cache
 .DS_store
 *-backups
 *.sw*
-hash.h
 .python-version
 *.tmp
 
