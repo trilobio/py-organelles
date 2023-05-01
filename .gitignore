@@ -1,18 +1,20 @@
+# Python meta files
 __pycache__
-fp-info-cache
-*.sw*
 .mypy_cache
 *.egg-info/
 .pytest_cache/
-software/python/__pycache__
-software/python/.coverage
-software/python/.mypy_cache
+fp-info-cache
+
+# Editor configuration files
+.python-version
+*.sw*
+.vscode
+
+# Generated firmware
+hardware/firmware/joints/gen
+
+# Misc files
 .DS_store
 *-backups
-*.sw*
-.python-version
 *.tmp
 
-node_modules
-
-.vscode
