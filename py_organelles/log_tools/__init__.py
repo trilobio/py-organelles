@@ -4,7 +4,28 @@ import inspect
 import logging
 import pathlib
 import tempfile
+from datetime import datetime
 from typing import Callable, List, Optional
+
+
+def log_timer_factory(logger: logging.Logger) -> Callable:
+    def log_enter_exit(func: Callable) -> Callable:
+        """Decorator to log start time, end time, and duration"""
+
+        @functools.wraps(func)
+        def dec(*args, **kwargs):
+            start = datetime.now()
+            retval = func(*args, **kwargs)
+            end = datetime.now()
+            delta = end - start
+            logger.info(f"Time taken: {delta}")
+            logger.info(f"Time start: {start}")
+            logger.info(f"Time end:   {end}")
+            return retval
+
+        return dec
+
+    return log_enter_exit
 
 
 def log_enter_exit_factory(logger: logging.Logger) -> Callable:
@@ -12,8 +33,7 @@ def log_enter_exit_factory(logger: logging.Logger) -> Callable:
 
     # Copied with modifications from aceta/can_bus/can_bus/client.py
     def log_enter_exit(func: Callable) -> Callable:
-        """Decorator to log function arguments and return values for debugging purposes.
-        """
+        """Decorator to log function arguments and return values for debugging purposes."""
 
         @functools.wraps(func)
         def dec(*args, **kwargs):
@@ -23,9 +43,11 @@ def log_enter_exit_factory(logger: logging.Logger) -> Callable:
                 "%s(%s)",
                 func.__qualname__,
                 ", ".join(
-                    map("{0[0]}={0[1]!r}".format, # pylint: disable=consider-using-f-string
-                    [(k, v) for k, v in func_args.items() if k != "self"])
-                )
+                    map(
+                        "{0[0]}={0[1]!r}".format,  # pylint: disable=consider-using-f-string
+                        [(k, v) for k, v in func_args.items() if k != "self"],
+                    )
+                ),
             )
 
             try:
@@ -40,19 +62,22 @@ def log_enter_exit_factory(logger: logging.Logger) -> Callable:
             logger.debug(
                 "%s(...) returned %s",
                 func.__qualname__,
-                ", ".join(repr(value) for value in retval_tuple))
+                ", ".join(repr(value) for value in retval_tuple),
+            )
 
             return retval
+
         return dec
+
     return log_enter_exit
 
 
-COLOR_BRIGHT_RED = '\x1b[91m'
-COLOR_BRIGHT_YELLOW = '\x1b[93m'
-COLOR_RED = '\x1b[31m'
-COLOR_BLUE = '\x1b[34m'
-COLOR_WHITE = '\x1b[37m'
-COLOR_RESET = '\x1b[0m'
+COLOR_BRIGHT_RED = "\x1b[91m"
+COLOR_BRIGHT_YELLOW = "\x1b[93m"
+COLOR_RED = "\x1b[31m"
+COLOR_BLUE = "\x1b[34m"
+COLOR_WHITE = "\x1b[37m"
+COLOR_RESET = "\x1b[0m"
 
 
 class ColorFormatter(logging.Formatter):
@@ -68,12 +93,12 @@ class ColorFormatter(logging.Formatter):
         for full docs, see help(logging.Formatter)
         """
         self._ansi_codes = {
-            'NOTSET': '',
-            'DEBUG': COLOR_BLUE,
-            'INFO': COLOR_WHITE,
-            'WARNING': COLOR_BRIGHT_YELLOW,
-            'ERROR': COLOR_RED,
-            'CRITICAL': COLOR_BRIGHT_RED,
+            "NOTSET": "",
+            "DEBUG": COLOR_BLUE,
+            "INFO": COLOR_WHITE,
+            "WARNING": COLOR_BRIGHT_YELLOW,
+            "ERROR": COLOR_RED,
+            "CRITICAL": COLOR_BRIGHT_RED,
         }
         super().__init__(*args, **kwargs)
 
@@ -85,7 +110,7 @@ class ColorFormatter(logging.Formatter):
         try:
             ansi_start_code = self._ansi_codes[record.levelname]
         except KeyError:
-            ansi_start_code = self._ansi_codes['NOTSET']
+            ansi_start_code = self._ansi_codes["NOTSET"]
 
         msg = super().format(record)
         return ansi_start_code + msg + COLOR_RESET
@@ -110,11 +135,11 @@ class ColorFormatter(logging.Formatter):
 
 
 def basic_logging_config(
-        logger_names: List[str],
-        stream_log_level: int = logging.INFO,
-        log_filepath: Optional[pathlib.Path] = None,
-        format_str: str = "%(name)s.%(levelname)s: %(message)s",
-    ) -> None:
+    logger_names: List[str],
+    stream_log_level: int = logging.INFO,
+    log_filepath: Optional[pathlib.Path] = None,
+    format_str: str = "%(name)s.%(levelname)s: %(message)s",
+) -> None:
     """For each logger name, Attach INFO streamhandler, DEBUG filehandler."""
     stream_formatter = ColorFormatter(format_str)
     stream_handler = logging.StreamHandler()
@@ -124,7 +149,7 @@ def basic_logging_config(
     if log_filepath is None:
         folder = pathlib.Path("/tmp/logs")
         folder.mkdir(exist_ok=True)
-        temp_file = tempfile.NamedTemporaryFile(suffix='.log', delete=False, dir=folder)
+        temp_file = tempfile.NamedTemporaryFile(suffix=".log", delete=False, dir=folder)
         log_filepath = temp_file.name
 
     file_formatter = logging.Formatter(format_str)
