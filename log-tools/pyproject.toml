@@ -9,6 +9,22 @@ packages = [{include = "log_tools"}]
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.12"
+python-json-logger = "^2.0.7"
+
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.0.277"
+black = "^23.3.0"
+mypy = "^1.4.1"
+isort = "^5.12.0"
+
+
+[tool.ruff]
+line-length = 100
+
+
+[tool.black]
+line-length = 100
 
 
 [build-system]

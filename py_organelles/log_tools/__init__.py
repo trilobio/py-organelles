@@ -5,7 +5,9 @@ import logging
 import pathlib
 import tempfile
 from datetime import datetime
-from typing import Callable, List, Optional
+from logging.handlers import RotatingFileHandler
+from pythonjsonlogger import jsonlogger
+from typing import Callable, List, Optional, Union
 
 
 def log_timer_factory(logger: logging.Logger) -> Callable:
@@ -163,3 +165,67 @@ def basic_logging_config(
         logger.addHandler(file_handler)
         logger.addHandler(stream_handler)
         logger.debug("Diagnostic logs saved to %s", log_filepath)
+
+
+def setup_structured_loggers(
+    loggers: List[Union[str, logging.Logger]],
+    filepath: pathlib.Path,
+) -> None:
+    """Set up provided loggers to save json-structured debug logs to a rotating file.
+
+    Args:
+        loggers (List[Union[str, logging.Logger]]): loggers to set up
+            can be logger or name of logger
+        filepath (pathlib.Path): file to save structured logs to
+            parent dirs are created in the function if they don't exist
+    """
+    # Set up json formatting
+    formatter = jsonlogger.JsonFormatter(
+        "%(RPC)s %(start_time)s %(end_time)s",
+    )
+
+    # Set up rotating file handler
+    # save up to 1 GB of logs that rotate every 200 MB
+    filepath.parent.mkdir(parents=True, exist_ok=True)
+    file_handler = RotatingFileHandler(filepath, maxBytes=200e6, backupCount=5)
+    file_handler.setLevel(logging.DEBUG)
+    file_handler.setFormatter(formatter)
+
+    # Attach handlers to loggers
+    for logger in loggers:
+        logger = logging.getLogger(logger) if isinstance(logger, str) else logger
+        logger.addHandler(file_handler)
+
+
+def setup_debug_loggers(
+    loggers: List[Union[str, logging.Logger]],
+    filepath: pathlib.Path,
+) -> None:
+    """Set up provided loggers to save debug logs to a file and stream info logs.
+    Attached to a rotating file handler.
+
+    Args:
+        loggers (List[Union[str, logging.Logger]]): list of loggers to set up
+            can be logger or name of logger
+        filepath (pathlib.Path): file to save structured logs to
+            parent dirs are created in the function if they don't exist
+    """
+    formatter = logging.Formatter("%(asctime)s %(levelname)-7s - %(message)s")
+
+    # Set up rotating file handler
+    # save up to 1 GB of logs that rotate every 200 MB
+    filepath.parent.mkdir(parents=True, exist_ok=True)
+    file_handler = RotatingFileHandler(filepath, maxBytes=200e6, backupCount=5)
+    file_handler.setLevel(logging.DEBUG)
+    file_handler.setFormatter(formatter)
+
+    # Set up stream handler
+    stream_handler = logging.StreamHandler()
+    stream_handler.setLevel(logging.INFO)
+    stream_handler.setFormatter(formatter)
+
+    # Attach handlers to loggers
+    for logger in loggers:
+        logger = logging.getLogger(logger) if isinstance(logger, str) else logger
+        logger.addHandler(file_handler)
+        logger.addHandler(stream_handler)
