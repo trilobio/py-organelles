@@ -9,6 +9,8 @@ from logging.handlers import RotatingFileHandler
 from pythonjsonlogger import jsonlogger
 from typing import Callable, List, Optional, Union
 
+from log_tools.ui import log_level_annotation
+
 
 def log_timer_factory(logger: logging.Logger) -> Callable:
     def log_enter_exit(func: Callable) -> Callable:
