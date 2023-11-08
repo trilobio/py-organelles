@@ -1,5 +1,6 @@
 """logging submodule with helpful user interface components."""
 import logging
+import pathlib
 from typing import Union
 
 import plac
@@ -35,4 +36,18 @@ log_level_annotation = plac.Annotation(
     kind="option",
     abbrev="ll",
     type=log_level_factory,
+)
+overwrite_annotation = plac.Annotation(
+    help="Overwrite existing file(s)",
+    kind="flag",
+)
+append_annotation = plac.Annotation(
+    help="Append to existing file(s)",
+    kind="flag",
+)
+output_dir_annotation = plac.Annotation(
+    help="Directory in which to save file(s)",
+    kind="option",
+    abbrev="od",
+    type=pathlib.Path,
 )
