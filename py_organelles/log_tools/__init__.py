@@ -22,6 +22,7 @@ def log_timer_factory(logger: logging.Logger) -> Callable:
             retval = func(*args, **kwargs)
             end = datetime.now()
             delta = end - start
+            logger.info(f"{func.__qualname__}")
             logger.info(f"Time taken: {delta}")
             logger.info(f"Time start: {start}")
             logger.info(f"Time end:   {end}")
