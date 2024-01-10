@@ -203,6 +203,7 @@ def setup_structured_loggers(
 def setup_debug_loggers(
     loggers: List[Union[str, logging.Logger]],
     filepath: pathlib.Path,
+    log_level: int = logging.INFO,
 ) -> None:
     """Set up provided loggers to save debug logs to a file and stream info logs.
     Attached to a rotating file handler.
@@ -212,6 +213,7 @@ def setup_debug_loggers(
             can be logger or name of logger
         filepath (pathlib.Path): file to save structured logs to
             parent dirs are created in the function if they don't exist
+        log_level (int): logging level for StreamHandler, defaults to logging.INFO
     """
     formatter = logging.Formatter("%(asctime)s %(levelname)-7s - %(message)s")
 
@@ -224,7 +226,7 @@ def setup_debug_loggers(
 
     # Set up stream handler
     stream_handler = logging.StreamHandler()
-    stream_handler.setLevel(logging.INFO)
+    stream_handler.setLevel(log_level)
     stream_handler.setFormatter(formatter)
 
     # Attach handlers to loggers
