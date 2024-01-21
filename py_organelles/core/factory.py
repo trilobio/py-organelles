@@ -8,7 +8,9 @@ class ObjectFactory:
     def __init__(self):
         self._builders = {}
 
-    def register_builder(self, key, builder: _t.Callable, override: bool = False) -> None:
+    def register_builder(
+        self, key, builder: _t.Callable, override: bool = False
+    ) -> None:
         """Register new builder with key.
 
         Args:
@@ -22,7 +24,8 @@ class ObjectFactory:
         """
         if not override and key in self._builders:
             raise ValueError(
-                f"{key} already has a registered builder; " "provide override=True to replace it"
+                f"{key} already has a registered builder; "
+                "provide override=True to replace it"
             )
 
         self._builders[key] = builder
