@@ -4,12 +4,14 @@ import inspect
 import logging
 import pathlib
 import tempfile
+from contextlib import contextmanager
 from datetime import datetime
 from logging.handlers import RotatingFileHandler
 from pythonjsonlogger import jsonlogger
 from typing import Callable, List, Optional, Union
 
-from log_tools.ui import log_level_annotation
+from log_tools.ui import log_level_annotation  # noqa: F401
+from log_tools.formatters import ColorFormatter, DurationFormatter  # noqa: F401
 
 
 def log_timer_factory(logger: logging.Logger) -> Callable:
@@ -77,66 +79,16 @@ def log_enter_exit_factory(logger: logging.Logger) -> Callable:
     return log_enter_exit
 
 
-COLOR_BRIGHT_RED = "\x1b[91m"
-COLOR_BRIGHT_YELLOW = "\x1b[93m"
-COLOR_RED = "\x1b[31m"
-COLOR_BLUE = "\x1b[34m"
-COLOR_WHITE = "\x1b[37m"
-COLOR_RESET = "\x1b[0m"
+@contextmanager
+def modify_log_level(logger: logging.Logger, level: int) -> None:
+    original_value = logger.level
 
+    try:
+        logger.setLevel(level)
+        yield
 
-class ColorFormatter(logging.Formatter):
-    """Formatter that uses ANSI escape codes to color messages based on logging level.
-
-    References:
-        https://alexandra-zaharia.github.io/posts/make-your-own-custom-color-formatter-with-python-logging/
-    """
-
-    def __init__(self, *args, **kwargs):
-        """Instantiate new ColorFormatter.
-
-        for full docs, see help(logging.Formatter)
-        """
-        self._ansi_codes = {
-            "NOTSET": "",
-            "DEBUG": COLOR_BLUE,
-            "INFO": COLOR_WHITE,
-            "WARNING": COLOR_BRIGHT_YELLOW,
-            "ERROR": COLOR_RED,
-            "CRITICAL": COLOR_BRIGHT_RED,
-        }
-        super().__init__(*args, **kwargs)
-
-    def format(self, record: logging.LogRecord) -> str:
-        """Add respective color to start of record, escape code to end of record.
-
-        If unrecognized levelname, uses NOTSET formatting.
-        """
-        try:
-            ansi_start_code = self._ansi_codes[record.levelname]
-        except KeyError:
-            ansi_start_code = self._ansi_codes["NOTSET"]
-
-        msg = super().format(record)
-        return ansi_start_code + msg + COLOR_RESET
-
-    def set_color(self, levelname: str, ansi_code: str) -> None:
-        """Update ansi_code assigned to levelname.
-
-        Note:
-            Capitalizes 'levelname' before storing internally.
-        """
-        if not isinstance(levelname, str):
-            raise TypeError(f"arg levelname expected 'str', not {type(levelname)}")
-        if not isinstance(ansi_code, str):
-            raise TypeError(f"arg ansi_code expected 'str', not {type(ansi_code)}")
-        self._ansi_codes[levelname.upper()] = ansi_code
-
-    def get_color(self, levelname: str) -> str:
-        """Query ansi_code assigned to levelname."""
-        if not isinstance(levelname, str):
-            raise TypeError(f"arg levelname expected 'str', not {type(levelname)}")
-        return self._ansi_codes[levelname.upper()]
+    finally:
+        logger.setLevel(original_value)
 
 
 def basic_logging_config(
