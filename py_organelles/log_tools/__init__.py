@@ -80,15 +80,28 @@ def log_enter_exit_factory(logger: logging.Logger) -> Callable:
 
 
 @contextmanager
-def modify_log_level(logger: logging.Logger, level: int) -> None:
-    original_value = logger.level
+def modify_log_level(logger: Union[logging.Logger, List[logging.Logger]], level: int) -> None:
+    """Temporarily modify the log level of one or more loggers.
+
+    Args:
+        logger (logging.Logger or List[logging.Logger]): logger(s) to modify
+        level (int): new log level
+    """
+    if isinstance(logger, logging.Logger):
+        loggers = [logger]
+    else:
+        loggers = logger
+
+    original_values = [logger.level for logger in loggers]
 
     try:
-        logger.setLevel(level)
+        for logger in loggers:
+            logger.setLevel(level)
         yield
 
     finally:
-        logger.setLevel(original_value)
+        for logger, original_value in zip(loggers, original_values):
+            logger.setLevel(original_value)
 
 
 def basic_logging_config(
@@ -119,7 +132,7 @@ def basic_logging_config(
         logger.setLevel(logging.DEBUG)
         logger.addHandler(file_handler)
         logger.addHandler(stream_handler)
-        logger.debug("Diagnostic logs saved to %s", log_filepath)
+        logger.info("Diagnostic logs saved to %s", log_filepath)
 
 
 def setup_structured_loggers(
