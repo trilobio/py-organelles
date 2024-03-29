@@ -27,7 +27,7 @@ class KindBase:
     """
 
     @classmethod
-    def from_str(cls, raw: str) -> KindBase:
+    def from_str(cls: type[KindBase], raw: str) -> KindBase:
         """Return KindBase subclass entry corresponding to string.
 
         Handles case-insensitivity and underscores; assumes subclass is enum.Enum.
