@@ -96,6 +96,9 @@ class _FunctionWrapper(_ObjectProxy):
                 Must take Callable as 1st arg, Optional instance as 2nd arg
         """
         super().__init__(wrapped)
+        self.__doc__ = (
+            wrapped.__doc__
+        )  # FIXME (connor): seems like the wrong way to do this
         self.wrapper = wrapper
 
     def __get__(self, instance, owner) -> _BoundFunctionWrapper:
