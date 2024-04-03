@@ -28,9 +28,7 @@ def modify_attribute(
             obj = obj * len(attribute_name)
 
         else:
-            raise ValueError(
-                "Must have 1 object OR same number of objects and attributes"
-            )
+            raise ValueError("Must have 1 object OR same number of objects and attributes")
 
     # Save the original values
     original_value: _t.List[_t.Any] = [None] * len(obj)

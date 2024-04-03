@@ -74,9 +74,7 @@ class _BoundFunctionWrapper(_ObjectProxy):
         self.wrapper = wrapper
 
     def __call__(self, *args, **kwargs) -> _t.Any:
-        if (
-            self.instance is None
-        ):  # If wrapped isn't a method, OR was called like a function
+        if self.instance is None:  # If wrapped isn't a method, OR was called like a function
             instance, args = args[0], args[1:]
             wrapped = functools.partial(self.wrapped, instance)
             return self.wrapper(wrapped, instance, *args, **kwargs)
@@ -96,9 +94,7 @@ class _FunctionWrapper(_ObjectProxy):
                 Must take Callable as 1st arg, Optional instance as 2nd arg
         """
         super().__init__(wrapped)
-        self.__doc__ = (
-            wrapped.__doc__
-        )  # FIXME (connor): seems like the wrong way to do this
+        self.__doc__ = wrapped.__doc__  # FIXME (connor): seems like the wrong way to do this
         self.wrapper = wrapper
 
     def __get__(self, instance, owner) -> _BoundFunctionWrapper:
