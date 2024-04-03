@@ -5,6 +5,7 @@ from typing import Any, List, Union
 
 import numpy as np
 
+
 def csv_append_row(
     file_path: pathlib.Path,
     row: Union[np.ndarray, List[Any], List[List[Any]]],
@@ -42,12 +43,13 @@ def set_up_csv(
         raise ValueError("Cannot provide both overwrite and append")
 
     if file_path.is_file():
-            if not overwrite and not append:
-                raise FileExistsError(
-                    f"{file_path.resolve()} already exists, but {overwrite=} and {append=}")
-    
-            elif overwrite:
-                file_path.unlink()
+        if not overwrite and not append:
+            raise FileExistsError(
+                f"{file_path.resolve()} already exists, but {overwrite=} and {append=}"
+            )
+
+        elif overwrite:
+            file_path.unlink()
 
     if not file_path.is_file():
         file_path.touch()

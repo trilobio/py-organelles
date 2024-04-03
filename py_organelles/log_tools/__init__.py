@@ -7,11 +7,12 @@ import tempfile
 from contextlib import contextmanager
 from datetime import datetime
 from logging.handlers import RotatingFileHandler
-from pythonjsonlogger import jsonlogger
 from typing import Callable, List, Optional, Union
 
-from log_tools.ui import log_level_annotation  # noqa: F401
+from pythonjsonlogger import jsonlogger
+
 from log_tools.formatters import ColorFormatter, DurationFormatter  # noqa: F401
+from log_tools.ui import log_level_annotation  # noqa: F401
 
 
 def log_timer_factory(logger: logging.Logger) -> Callable:

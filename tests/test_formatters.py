@@ -1,6 +1,6 @@
 """Integration test for DurationFormatter."""
-import time
 import logging
+import time
 
 from log_tools.formatters import DurationFormatter
 

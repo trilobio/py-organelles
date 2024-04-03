@@ -5,6 +5,7 @@ from typing import Union
 
 import plac
 
+
 def log_level_factory(log_level: Union[str, int]) -> int:
     """Given log level name or integer representation, returns int."""
     if isinstance(log_level, str):
@@ -27,8 +28,7 @@ def log_level_factory(log_level: Union[str, int]) -> int:
         return log_level
 
     else:
-        raise TypeError(
-            f"Expected log level to be str or int, got {type(log_level)}")
+        raise TypeError(f"Expected log level to be str or int, got {type(log_level)}")
 
 
 log_level_annotation = plac.Annotation(

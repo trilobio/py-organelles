@@ -7,8 +7,8 @@ from log_tools.ui import log_level_factory
 
 class TestGetLogLevel(unittest.TestCase):
     def test_get_log_level(self) -> None:
-        self.assertEqual(log_level_factory('CRITICAL'), logging.CRITICAL)
-        self.assertEqual(log_level_factory('debug'), logging.DEBUG)
+        self.assertEqual(log_level_factory("CRITICAL"), logging.CRITICAL)
+        self.assertEqual(log_level_factory("debug"), logging.DEBUG)
         self.assertEqual(log_level_factory(26), 26)
         self.assertEqual(log_level_factory("006"), 6)
 

@@ -1,7 +1,7 @@
 """Custom logging.Formatters for your joy and convenience."""
+import datetime
 import logging
 import time
-import datetime
 
 COLOR_BRIGHT_RED = "\x1b[91m"
 COLOR_BRIGHT_YELLOW = "\x1b[93m"
@@ -82,6 +82,7 @@ class DurationFormatter(logging.Formatter):
     logger.add_handler(handler)
     ```
     """
+
     def __init__(self, *args, **kwargs):
         """Instantiate new DurationFormatter.
 
@@ -105,8 +106,7 @@ class DurationFormatter(logging.Formatter):
     def start_time(self, value: float) -> None:
         """Set asctime from which duration is calculated."""
         if not isinstance(value, (int, float)):
-            raise TypeError(
-                f"arg value expected 'int' or 'float', not {type(value)}")
+            raise TypeError(f"arg value expected 'int' or 'float', not {type(value)}")
 
         self._start_time = value
 
