@@ -20,3 +20,4 @@ hardware/firmware/servo-board/gen
 *.tmp
 *.bkp
 **/_notebooks/
+*.csv
