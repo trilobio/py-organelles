@@ -1,11 +1,13 @@
 """Base classes for dataclasses and enumerations."""
 from __future__ import annotations
 
+import enum
+
 from typing_extensions import Self
 
 
 class Base:
-    """Case class for dataclass.dataclasses."""
+    """Base class for dataclass.dataclasses."""
 
     def __post_init__(self):
         """An empty __post_init__ method to implement co-operative inheritance for dataclasses"""
@@ -13,23 +15,17 @@ class Base:
             raise RuntimeError("Base must be the final Class in __post_init__ MRO")
 
 
-class KindBase:
+class KindBase(enum.Enum):
     """Base class for Kind enumerations of objects:
 
     Example.
         ```
         @enum.unique
-        class Kind(KindBase, enum.Enum):
+        class Kind(KindBase):
             KIND_A = enum.auto()
             KIND_B = enum.auto()
         ```
-
-    Child classes should be enumerations - this base class just allows a
-    single implentation of the from_str method.
     """
-
-    def __init__(self, raw: str):
-        pass
 
     @classmethod
     def from_str(cls, raw: str) -> Self:
@@ -40,7 +36,7 @@ class KindBase:
         raw = raw.upper()
         raw = raw[1:] if raw[0] == "_" else raw
         try:
-            return cls(raw)
+            return cls[raw]
 
         except KeyError as err:
             raise KeyError(f"{cls.__name__} has no entry {raw}") from err

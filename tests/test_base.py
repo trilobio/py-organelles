@@ -8,7 +8,8 @@ from core.base import KindBase
 class TestKindBase(unittest.TestCase):
     """unittest class for KindBase class."""
 
-    class TestKind(KindBase, enum.Enum):
+    @enum.unique
+    class TestKind(KindBase):
         """Test KindBase class."""
 
         A = enum.auto()
