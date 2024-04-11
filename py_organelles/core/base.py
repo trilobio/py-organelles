@@ -1,6 +1,8 @@
 """Base classes for dataclasses and enumerations."""
 from __future__ import annotations
 
+from typing_extensions import Self
+
 
 class Base:
     """Case class for dataclass.dataclasses."""
@@ -26,8 +28,11 @@ class KindBase:
     single implentation of the from_str method.
     """
 
+    def __init__(self, raw: str):
+        pass
+
     @classmethod
-    def from_str(cls: type[KindBase], raw: str) -> KindBase:
+    def from_str(cls, raw: str) -> Self:
         """Return KindBase subclass entry corresponding to string.
 
         Handles case-insensitivity and underscores; assumes subclass is enum.Enum.
@@ -35,6 +40,7 @@ class KindBase:
         raw = raw.upper()
         raw = raw[1:] if raw[0] == "_" else raw
         try:
-            return cls[raw]
+            return cls(raw)
+
         except KeyError as err:
             raise KeyError(f"{cls.__name__} has no entry {raw}") from err
