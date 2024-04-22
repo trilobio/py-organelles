@@ -35,7 +35,8 @@ def modify_attribute(
     for i, (o, a) in enumerate(zip(obj, attribute_name)):
         if hasattr(o, a):
             original_value[i] = getattr(o, a)
-
+        else:
+            raise AttributeError(f"Attribute {a} not found on object of type {type(o)}")
     try:
         # Modify the attributes
         for o, a, new_v in zip(obj, attribute_name, new_value):
