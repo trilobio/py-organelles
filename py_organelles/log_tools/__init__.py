@@ -13,6 +13,7 @@ from pythonjsonlogger import jsonlogger
 
 from log_tools.formatters import ColorFormatter, DurationFormatter  # noqa: F401
 from log_tools.ui import log_level_annotation  # noqa: F401
+from log_tools.utilities import has_similar_handler
 
 
 def log_timer_factory(logger: logging.Logger) -> Callable:
@@ -79,7 +80,7 @@ def log_enter_exit_factory(logger: logging.Logger) -> Callable:
 
     return log_enter_exit
 
-
+ 
 @contextmanager
 def modify_log_level(logger: Union[logging.Logger, List[logging.Logger]], level: int) -> None:
     """Temporarily modify the log level of one or more loggers.
@@ -111,7 +112,22 @@ def basic_logging_config(
     log_filepath: Optional[pathlib.Path] = None,
     format_str: str = "%(name)s.%(levelname)s: %(message)s",
 ) -> None:
-    """For each logger name, Attach INFO streamhandler, DEBUG filehandler."""
+    """For each logger name, Attach INFO streamhandler, DEBUG filehandler.
+
+    Note: If your handlers aren't showing up, check that the handlers aren't being
+    removed by the has_similar_handler() function. The function compares the log level,
+    name, and format_str of the desired handler to the handlers already attached to the logger
+    and its parents. If the handler matches all of these criteria, it will not be attached.
+
+    Args:
+        logger_names (List[str): list of names of loggers to configure.
+        stream_log_level (optional, int): logging level of StreamHandler.
+            Defaults to INFO.
+        log_filepath (optional, pathlib.Path): text log filepath.
+            Defaults to a new file in /tmp.
+        format_str (optional, str): format string passed to all formatters.
+            Defaults to "%(name)s.%(levelname)s: %(message)s"
+    """
     stream_formatter = ColorFormatter(format_str)
     stream_handler = logging.StreamHandler()
     stream_handler.setLevel(stream_log_level)
@@ -131,9 +147,11 @@ def basic_logging_config(
     for logger_name in logger_names:
         logger = logging.getLogger(logger_name)
         logger.setLevel(logging.DEBUG)
-        logger.addHandler(file_handler)
-        logger.addHandler(stream_handler)
-        logger.info("Diagnostic logs saved to %s", log_filepath)
+        if not has_similar_handler(logger, stream_handler):
+            logger.addHandler(stream_handler)
+        if not has_similar_handler(logger, file_handler):
+            logger.addHandler(file_handler)
+            logger.info("Diagnostic logs saved to %s", log_filepath)
 
 
 def setup_structured_loggers(
