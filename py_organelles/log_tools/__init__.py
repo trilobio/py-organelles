@@ -80,7 +80,7 @@ def log_enter_exit_factory(logger: logging.Logger) -> Callable:
 
     return log_enter_exit
 
- 
+
 @contextmanager
 def modify_log_level(logger: Union[logging.Logger, List[logging.Logger]], level: int) -> None:
     """Temporarily modify the log level of one or more loggers.

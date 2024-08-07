@@ -3,15 +3,22 @@ import logging
 import tempfile
 import unittest
 
-from log_tools.utilities import get_handlers, has_similar_handler, _get_handler_formatter_str
+from log_tools.utilities import (
+    _get_handler_formatter_str,
+    get_handlers,
+    has_similar_handler,
+)
 
 
 class LoggerHandlerTestCase(unittest.TestCase):
     """Base TestCase class, cleans up loggers & handlers between tests."""
+
     def setUp(self) -> None:
         if len(logging.root.manager.loggerDict) > 0:
             assert False, f"loggers left over from last test: {logging.root.manager.loggerDict}"
-        assert len(logging.root.handlers) == 0, "Root logger has handlers not cleaned up from last test"
+        assert (
+            len(logging.root.handlers) == 0
+        ), "Root logger has handlers not cleaned up from last test"
 
     def tearDown(self) -> None:
         """Clean up any loggers created during test."""
@@ -124,7 +131,7 @@ class TestHasSimilarHandler(LoggerHandlerTestCase):
         h = logging.StreamHandler()
         h.name = name
         l.addHandler(h)
-        
+
         self.assertFalse(has_similar_handler(l, logging.StreamHandler()))
 
     def test_different_level(self) -> None:
@@ -133,7 +140,7 @@ class TestHasSimilarHandler(LoggerHandlerTestCase):
         h = logging.StreamHandler()
         h.level = 9
         l.addHandler(h)
-        
+
         self.assertFalse(has_similar_handler(l, logging.StreamHandler()))
 
     def test_different_format_str(self) -> None:
@@ -143,7 +150,7 @@ class TestHasSimilarHandler(LoggerHandlerTestCase):
         f = logging.Formatter()
         h.setFormatter(f)
         l.addHandler(h)
-        
+
         self.assertFalse(has_similar_handler(l, logging.StreamHandler()))
 
     def test_different_class(self) -> None:

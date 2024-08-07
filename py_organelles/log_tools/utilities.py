@@ -2,6 +2,7 @@
 import logging
 from typing import List, Optional
 
+
 def get_handlers(logger: logging.Logger) -> List[logging.Handler]:
     """Recursively traverse logger hierarchy and return list of all handlers applying to given logger."""
     if not logger.hasHandlers():
@@ -23,10 +24,12 @@ def _get_handler_formatter_str(handler: logging.Handler) -> Optional[str]:
 
 def _handlers_are_similar(h1: logging.Handler, h2: logging.Handler) -> bool:
     """Return True if handlers are similar."""
-    return _get_handler_formatter_str(h1) == _get_handler_formatter_str(h2)\
-        and h1.get_name() == h2.get_name()\
-        and h1.level == h2.level\
+    return (
+        _get_handler_formatter_str(h1) == _get_handler_formatter_str(h2)
+        and h1.get_name() == h2.get_name()
+        and h1.level == h2.level
         and h1.__class__ == h2.__class__
+    )
 
 
 def has_similar_handler(logger: logging.Logger, handler: logging.Handler) -> bool:
