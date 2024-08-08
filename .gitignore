@@ -22,3 +22,5 @@ hardware/firmware/servo-board/gen
 **/_notebooks/
 *.csv
 *.png
+
+.idea
