@@ -1,6 +1,5 @@
 """Unit tests for log_tools.utilities submodule."""
 import logging
-import tempfile
 import unittest
 
 from log_tools.utilities import (
@@ -39,7 +38,6 @@ class TestGetHandlers(LoggerHandlerTestCase):
 
     def test_no_handler_parent(self) -> None:
         name = "test_no_handler_parent"
-        l_parent = logging.getLogger(name)
         l = logging.getLogger(f"{name}.child")
         self.assertTrue(len(get_handlers(l)) == 0)
 
