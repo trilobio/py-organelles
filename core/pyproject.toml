@@ -5,6 +5,9 @@ description = "Generic structures for writing Python at Trilobio."
 authors = ["Connor Novak <connor@trilo.bio>"]
 readme = "README.md"
 
+[tool.poetry.scripts]
+test = "tests:main"
+
 [tool.poetry.dependencies]
 python = "^3.10, <=3.12"
 typing-extensions = "^4.12.2"

@@ -16,6 +16,9 @@ typing-extensions = "^4.12.2"
 [tool.poetry.group.dev]
 optional = true
 
+[tool.poetry.scripts]
+test = "tests:main"
+
 [tool.poetry.group.dev.dependencies]
 black = "^23.1.0"
 isort = "^5.12.0"
