@@ -166,6 +166,17 @@ files = [
 ]
 
 [[package]]
+name = "plac"
+version = "1.4.3"
+description = "The smartest command line arguments parser in the world"
+optional = false
+python-versions = "*"
+files = [
+    {file = "plac-1.4.3-py2.py3-none-any.whl", hash = "sha256:8a84fde8f950c9de6588a2d53c9deeac3ba1ddb456d887a33228460cf6549750"},
+    {file = "plac-1.4.3.tar.gz", hash = "sha256:d4cb3387b2113a28aebd509433d0264a4e5d9bb7c1a86db4fbd0a8f11af74eb3"},
+]
+
+[[package]]
 name = "platformdirs"
 version = "4.2.2"
 description = "A small Python package for determining appropriate platform-specific dirs, e.g. a `user data dir`."
@@ -232,4 +243,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10, <=3.12"
-content-hash = "2e6e9863fb4d467333cb66797d6e2635e30604d4bef05450ad8f5f6f1ff7529c"
+content-hash = "6e0ec65392763c151f4dabc6926762ccc79349d293507e4ccf71bd46d9329173"
