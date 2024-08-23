@@ -9,7 +9,7 @@ readme = "README.md"
 test = "tests:main"
 
 [tool.poetry.dependencies]
-python = "^3.10, <=3.12"
+python = "^3.12"
 typing-extensions = "^4.12.2"
 plac = "^1.4.3"
 
