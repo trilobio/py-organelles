@@ -1,4 +1,5 @@
 """Generic useful context managers."""
+
 import typing as _t
 from contextlib import contextmanager
 

@@ -29,6 +29,7 @@ Traceback (most recent call last):
 TypeError: main() takes from 1 to 2 positional arguments but 3 were given
 ```
 """
+
 import functools
 import typing as _t
 

@@ -1,4 +1,5 @@
 """Unittests for serial_number.py"""
+
 import logging
 import unittest
 

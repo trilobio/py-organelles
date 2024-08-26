@@ -1,4 +1,5 @@
 """Base classes for dataclasses and enumerations."""
+
 from __future__ import annotations
 
 import enum

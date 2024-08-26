@@ -5,6 +5,7 @@ This decision was made to avoid the following circular dependency between `confi
     - `config-tools` imports SerialNumber from `firmware-tools`
     - `firmware-tools` imports various tooling from `config-tools` in order to read .toml files
 """
+
 from __future__ import annotations
 
 import logging

@@ -1,4 +1,5 @@
 """unittests for kind.base submodule."""
+
 import enum
 import unittest
 

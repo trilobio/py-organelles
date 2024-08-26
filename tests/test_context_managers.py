@@ -1,4 +1,5 @@
 """Unittests for context_managers submodule."""
+
 import unittest
 
 from core.context_managers import modify_attribute

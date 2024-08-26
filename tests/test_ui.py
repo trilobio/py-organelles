@@ -1,17 +1,21 @@
 """core.ui submodule unittests."""
+
 import enum
-import unittest
 import typing as _t
+import unittest
 
 import plac
 
 from core.ui import create_annotation_from_enum
 
+
 class Color(enum.Enum):
     """RGB color enumeration."""
+
     RED = enum.auto()
     GREEN = enum.auto()
     BLUE = enum.auto()
+
 
 @plac.annotations(
     color=create_annotation_from_enum(Color),
