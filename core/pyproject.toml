@@ -9,7 +9,7 @@ readme = "README.md"
 test = "tests:main"
 
 [tool.poetry.dependencies]
-python = "^3.10, <=3.12"
+python = "^3.11"
 typing-extensions = "^4.12.2"
 plac = "^1.4.3"
 
@@ -17,9 +17,9 @@ plac = "^1.4.3"
 optional = true
 
 [tool.poetry.group.dev.dependencies]
-black = "^23.1.0"
-isort = "^5.12.0"
-mypy = "^1.4.0"
+black = "^24.8.0"
+isort = "^5.13.2"
+mypy = "^1.11.1"
 ruff = "^0.1.0"
 
 [tool.black]

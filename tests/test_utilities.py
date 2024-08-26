@@ -1,4 +1,5 @@
 """Unit tests for log_tools.utilities submodule."""
+
 import logging
 import unittest
 

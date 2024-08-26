@@ -8,7 +8,7 @@ readme = "README.md"
 packages = [{include = "log_tools"}]
 
 [tool.poetry.dependencies]
-python = ">=3.10,<3.12"
+python = "^3.11"
 python-json-logger = "^2.0.7"
 plac = "^1.4.3"
 typing-extensions = "^4.12.2"
@@ -20,9 +20,9 @@ optional = true
 test = "tests:main"
 
 [tool.poetry.group.dev.dependencies]
-black = "^23.1.0"
-isort = "^5.12.0"
-mypy = "^1.4.0"
+black = "^24.8.0"
+isort = "^5.13.2"
+mypy = "^1.11.1"
 ruff = "^0.1.0"
 
 [tool.black]

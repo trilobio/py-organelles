@@ -1,4 +1,5 @@
 """Integration test for DurationFormatter."""
+
 import logging
 import time
 

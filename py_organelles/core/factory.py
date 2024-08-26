@@ -1,4 +1,5 @@
 """Module for creating standardized object factories."""
+
 import typing as _t
 
 
