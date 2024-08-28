@@ -19,7 +19,7 @@ def _byte_length(i: int) -> int:
     return (i.bit_length() + 7) // 8
 
 
-class SerialNumber:
+class PCBSerialNumber:
     """Python representation of PCB serial number,
     contains methods for converting to and from bytes."""
 
@@ -49,7 +49,7 @@ class SerialNumber:
         self.instance_id = instance_id
 
     @classmethod
-    def from_bytes(cls, data: bytes) -> SerialNumber:
+    def from_bytes(cls, data: bytes) -> PCBSerialNumber:
         """Create SerialNumber instance from bytes."""
         if not len(data) == 7:
             raise ValueError(f"SerialNumber must be 7 bytes long, got {len(data)}")
@@ -60,7 +60,7 @@ class SerialNumber:
         return cls(pcb_id, version_id, instance_id)
 
     @classmethod
-    def from_str(cls, data: str) -> SerialNumber:
+    def from_str(cls, data: str) -> PCBSerialNumber:
         """Create SerialNumber instance from string.
 
         Formats accepted:
@@ -102,7 +102,7 @@ class SerialNumber:
     def __repr__(self) -> str:
         return f"SerialNumber(pcb_id={self.pcb_id}, version_id={self.version_id}, instance_id={self.instance_id})"
 
-    def __eq__(self, other: SerialNumber) -> bool:
+    def __eq__(self, other: PCBSerialNumber) -> bool:
         """Compare SerialNumber instances for equality."""
         return (
             self.pcb_id == other.pcb_id
