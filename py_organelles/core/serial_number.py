@@ -8,7 +8,11 @@ This decision was made to avoid the following circular dependency between `confi
 
 from __future__ import annotations
 
+import ctypes
+import enum
 import logging
+import re
+from typing import NamedTuple, Self
 
 _logger_name = "core.serial_number"
 _logger = logging.getLogger(_logger_name)
@@ -19,7 +23,7 @@ def _byte_length(i: int) -> int:
     return (i.bit_length() + 7) // 8
 
 
-class SerialNumber:
+class PCBSerialNumber:
     """Python representation of PCB serial number,
     contains methods for converting to and from bytes."""
 
@@ -49,7 +53,7 @@ class SerialNumber:
         self.instance_id = instance_id
 
     @classmethod
-    def from_bytes(cls, data: bytes) -> SerialNumber:
+    def from_bytes(cls, data: bytes) -> PCBSerialNumber:
         """Create SerialNumber instance from bytes."""
         if not len(data) == 7:
             raise ValueError(f"SerialNumber must be 7 bytes long, got {len(data)}")
@@ -60,7 +64,7 @@ class SerialNumber:
         return cls(pcb_id, version_id, instance_id)
 
     @classmethod
-    def from_str(cls, data: str) -> SerialNumber:
+    def from_str(cls, data: str) -> PCBSerialNumber:
         """Create SerialNumber instance from string.
 
         Formats accepted:
@@ -102,10 +106,100 @@ class SerialNumber:
     def __repr__(self) -> str:
         return f"SerialNumber(pcb_id={self.pcb_id}, version_id={self.version_id}, instance_id={self.instance_id})"
 
-    def __eq__(self, other: SerialNumber) -> bool:
+    def __eq__(self, other: PCBSerialNumber) -> bool:
         """Compare SerialNumber instances for equality."""
         return (
             self.pcb_id == other.pcb_id
             and self.version_id == other.version_id
             and self.instance_id == other.instance_id
+        )
+
+
+class ProductType(enum.IntEnum):
+    trilobot = 1
+
+
+class Factory(enum.IntEnum):
+    office = 0
+
+
+class SerialNumber(NamedTuple):
+    """
+    Simple implementation of serial number standard defined in
+    https://docs.google.com/document/d/1s6pC0wdmqtIf6gs2tAd2PYZgk5VbTx11_sRjl1heAyU/edit
+    """
+
+    product_type: ProductType
+    version_major: int
+    version_minor: int
+    factory: Factory
+    line: int  # there is no enum for line because its meaning is factory-dependent
+    index: int
+
+    def pack(self) -> int:
+        # check for overflow
+        c_defs = {
+            "product_type": ctypes.c_uint16(self.product_type),
+            "version_major": ctypes.c_uint8(self.version_major),
+            "version_minor": ctypes.c_uint8(self.version_minor),
+            "factory": ctypes.c_uint8(self.factory),
+            "line": ctypes.c_uint8(self.line),
+            "index": ctypes.c_uint16(self.index),
+        }
+
+        for field in self._fields:
+            if c_defs[field].value != (n := getattr(self, field)):
+                raise ValueError(f"{field} value of {n} overflowed")
+
+        return (
+            self.product_type << 48
+            | self.version_major << 40
+            | self.version_minor << 32
+            | self.factory << 24
+            | self.line << 16
+            | self.index
+        )
+
+    @classmethod
+    def from_int(cls, sn: int) -> Self:
+        # struct.unpack is for nerds
+        return cls._make(
+            reversed(
+                [
+                    sn % 2**16,  # index
+                    (r := sn >> 16) % 2**8,  # line
+                    (r := r >> 8) % 2**8,  # factory
+                    (r := r >> 8) % 2**8,  # minor
+                    (r := r >> 8) % 2**8,  # major
+                    r >> 8,  # type
+                ]
+            )
+        )
+
+    @classmethod
+    def from_str(cls, s: str) -> Self:
+        m = re.fullmatch(
+            "T([0-9A-F]{4})"
+            "V([0-9A-F]{2})([0-9A-F]{2})"
+            "F([0-9A-F]{2})"
+            "L([0-9A-F]{2})"
+            "N([0-9A-F]{4})",
+            s,
+        )
+
+        if m is None:
+            raise ValueError(f"{s} is not a valid serial number")
+
+        return cls._make(map(lambda v: int(v, 16), m.groups()))
+
+    def __int__(self):
+        return self.pack()
+
+    def __str__(self):
+        return (
+            f"T{self.product_type:04X}"
+            f"V{self.version_major:02X}{self.version_minor:02X}"
+            f"F{self.factory:02X}"
+            f"L{self.line:02X}"
+            f"N{self.index:04X}"
         )
