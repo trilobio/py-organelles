@@ -3,10 +3,38 @@
 import logging
 import unittest
 
-from core.serial_number import PCBSerialNumber
+from core.serial_number import PCBSerialNumber, SerialNumber
 
 
 class TestSerialNumber(unittest.TestCase):
+    def test_serial_from_string(self):
+        sn = SerialNumber.from_str("T0001V0103F00L00N000B")
+        self.assertEqual(sn.index, 11)
+        self.assertEqual(sn.factory, 0)
+        self.assertEqual(sn.line, 0)
+        self.assertEqual(sn.version_minor, 3)
+        self.assertEqual(sn.version_major, 1)
+        self.assertEqual(sn.product_type, 1)
+
+    def test_serial_to_string(self):
+        sn = SerialNumber(1, 1, 3, 0, 0, 11)
+        self.assertEqual(str(sn), "T0001V0103F00L00N000B")
+
+    def test_serial_to_int(self):
+        sn = SerialNumber(1, 1, 3, 0, 0, 11)
+        self.assertEqual(int(sn), 0x101030000000B)
+
+    def test_int_to_serial(self):
+        sn = SerialNumber.from_int(0x101030001000F)
+        self.assertEqual(sn.index, 15)
+        self.assertEqual(sn.factory, 0)
+        self.assertEqual(sn.line, 1)
+        self.assertEqual(sn.version_minor, 3)
+        self.assertEqual(sn.version_major, 1)
+        self.assertEqual(sn.product_type, 1)
+
+
+class TestPCBSerialNumber(unittest.TestCase):
     """SerialNumber unittests."""
 
     def test_from_bytes(self) -> None:
