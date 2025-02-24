@@ -106,6 +106,10 @@ class PCBSerialNumber:
     def __repr__(self) -> str:
         return f"SerialNumber(pcb_id={self.pcb_id}, version_id={self.version_id}, instance_id={self.instance_id})"
 
+    def __hash__(self) -> int:
+        """Hash SerialNumber instance."""
+        return hash((self.pcb_id, self.version_id, self.instance_id))
+
     def __eq__(self, other: PCBSerialNumber) -> bool:
         """Compare SerialNumber instances for equality."""
         return (

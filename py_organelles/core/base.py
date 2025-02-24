@@ -41,3 +41,11 @@ class KindBase(enum.Enum):
 
         except KeyError as err:
             raise KeyError(f"{cls.__name__} has no entry {raw}") from err
+
+    def to_str(self) -> str:
+        """Return string representation of KindBase subclass entry.
+        
+        :return: uppercase string representation of KindBase subclass entry
+        :rtype: str
+        """
+        return self.name.upper()
