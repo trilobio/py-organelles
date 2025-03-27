@@ -12,7 +12,7 @@ import ctypes
 import enum
 import logging
 import re
-from typing import NamedTuple, Self
+from typing import Literal, NamedTuple, Self
 
 _logger_name = "core.serial_number"
 _logger = logging.getLogger(_logger_name)
@@ -27,7 +27,7 @@ class PCBSerialNumber:
     """Python representation of PCB serial number,
     contains methods for converting to and from bytes."""
 
-    _byteorder = "big"  # Lol, whoops
+    _byteorder: Literal["little", "big"] = "big"  # Lol, whoops
 
     def __init__(self, pcb_id: int, version_id: int, instance_id: int):
         """Create SerialNumber instance."""
@@ -110,10 +110,11 @@ class PCBSerialNumber:
         """Hash SerialNumber instance."""
         return hash((self.pcb_id, self.version_id, self.instance_id))
 
-    def __eq__(self, other: PCBSerialNumber) -> bool:
+    def __eq__(self, other: object) -> bool:
         """Compare SerialNumber instances for equality."""
         return (
-            self.pcb_id == other.pcb_id
+            isinstance(other, PCBSerialNumber)
+            and self.pcb_id == other.pcb_id
             and self.version_id == other.version_id
             and self.instance_id == other.instance_id
         )
@@ -138,7 +139,7 @@ class SerialNumber(NamedTuple):
     version_minor: int
     factory: Factory
     line: int  # there is no enum for line because its meaning is factory-dependent
-    index: int
+    index: int  # TODO (mia): Fix the mypy [assignment] error here
 
     def pack(self) -> int:
         # check for overflow

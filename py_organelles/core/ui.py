@@ -1,9 +1,14 @@
 """plac-related user interface functions."""
 
-import plac
+from enum import Enum
+from typing import Type
+
+import plac  # type: ignore[import-untyped]
 
 
-def create_annotation_from_enum(enum_class: type, kind: str = "positional") -> plac.Annotation:
+def create_annotation_from_enum(
+    enum_class: Type[Enum], kind: str = "positional"
+) -> plac.Annotation:
     """Generate plac annotation from enum class.
 
     Example:

@@ -1,15 +1,15 @@
 """Generic useful context managers."""
 
-import typing as _t
 from contextlib import contextmanager
+from typing import Any, Iterator
 
 
 @contextmanager
 def modify_attribute(
-    obj: _t.Union[_t.Any, _t.List[_t.Any]],
-    attribute_name: _t.Union[str, _t.List[str]],
-    new_value: _t.Union[_t.Any, _t.List[_t.Any]],
-) -> None:
+    obj: Any | list[Any],
+    attribute_name: str | list[str],
+    new_value: Any | list[Any],
+) -> Iterator[None]:
     # Put all args in lists
     if not isinstance(obj, list):
         obj = [obj]
@@ -32,7 +32,7 @@ def modify_attribute(
             raise ValueError("Must have 1 object OR same number of objects and attributes")
 
     # Save the original values
-    original_value: _t.List[_t.Any] = [None] * len(obj)
+    original_value: list[Any] = [None] * len(obj)
     for i, (o, a) in enumerate(zip(obj, attribute_name)):
         if hasattr(o, a):
             original_value[i] = getattr(o, a)

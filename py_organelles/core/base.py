@@ -1,10 +1,7 @@
 """Base classes for dataclasses and enumerations."""
 
-from __future__ import annotations
-
 import enum
-
-from typing_extensions import Self
+from typing import Protocol, Self
 
 
 class Base:
@@ -14,6 +11,17 @@ class Base:
         """An empty __post_init__ method to implement co-operative inheritance for dataclasses"""
         if hasattr(super(), "__post_init__"):
             raise RuntimeError("Base must be the final Class in __post_init__ MRO")
+
+
+class KindInterface(Protocol):
+    """Standard interface for a Kind class."""
+
+    @classmethod
+    def from_str(cls, raw: str) -> Self:
+        raise NotImplementedError
+
+    def to_str(self) -> str:
+        raise NotImplementedError
 
 
 class KindBase(enum.Enum):
@@ -44,7 +52,7 @@ class KindBase(enum.Enum):
 
     def to_str(self) -> str:
         """Return string representation of KindBase subclass entry.
-        
+
         :return: uppercase string representation of KindBase subclass entry
         :rtype: str
         """

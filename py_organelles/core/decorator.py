@@ -31,7 +31,7 @@ TypeError: main() takes from 1 to 2 positional arguments but 3 were given
 """
 
 import functools
-import typing as _t
+from typing import Any, Callable
 
 
 class _ObjectProxy:
@@ -51,7 +51,11 @@ class _ObjectProxy:
     def __class__(self):
         return self.wrapped.__class__
 
-    def __getattr__(self, name: str) -> _t.Any:
+    @__class__.setter
+    def __class__(self, value):
+        self.wrapped.__class__ = value
+
+    def __getattr__(self, name: str) -> Any:
         return getattr(self.wrapped, name)
 
 
@@ -74,7 +78,7 @@ class _BoundFunctionWrapper(_ObjectProxy):
         self.instance = instance
         self.wrapper = wrapper
 
-    def __call__(self, *args, **kwargs) -> _t.Any:
+    def __call__(self, *args, **kwargs) -> Any:
         if self.instance is None:  # If wrapped isn't a method, OR was called like a function
             instance, args = args[0], args[1:]
             wrapped = functools.partial(self.wrapped, instance)
@@ -102,11 +106,11 @@ class _FunctionWrapper(_ObjectProxy):
         wrapped = self.wrapped.__get__(instance, owner)
         return _BoundFunctionWrapper(wrapped, instance, self.wrapper)
 
-    def __call__(self, *args, **kwargs) -> _t.Any:
+    def __call__(self, *args, **kwargs) -> Any:
         return self.wrapper(self.wrapped, None, *args, **kwargs)
 
 
-def wrapper_to_decorator(wrapper: _t.Callable) -> _t.Callable:
+def wrapper_to_decorator(wrapper: Callable) -> Callable:
     """Creates a decorator out of the decorated function.
 
     Usage:
@@ -142,7 +146,7 @@ def wrapper_to_decorator(wrapper: _t.Callable) -> _t.Callable:
     """
 
     @functools.wraps(wrapper)
-    def _decorator(wrapped: _t.Callable) -> _FunctionWrapper:
+    def _decorator(wrapped: Callable) -> _FunctionWrapper:
         """Wrap the function on which the decorator is applied in a _FunctionWrapper."""
         return _FunctionWrapper(wrapped, wrapper)
 
