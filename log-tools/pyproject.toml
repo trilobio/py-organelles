@@ -1,17 +1,20 @@
-[tool.poetry]
+[project]
 name = "log-tools"
 version = "0.1.0"
 description = "Various python logging tools for internal Trilobio use."
-authors = ["Your Name <you@example.com>"]
-license = "n"
+authors = []
 readme = "README.md"
 packages = [{include = "log_tools"}]
+classifiers = ["Private :: Do Not Upload"]
+requires-python = ">=3.11"
+dependencies = [
+    "plac>=1.4.5",
+    "python-json-logger>=3.3.0",
+]
 
-[tool.poetry.dependencies]
-python = "^3.11"
-python-json-logger = "^2.0.7"
-plac = "^1.4.3"
-typing-extensions = "^4.12.2"
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [tool.poetry.group.dev]
 optional = true
@@ -33,7 +36,3 @@ profile = "black"
 
 [tool.ruff]
 line-length = 100
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
