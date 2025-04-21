@@ -6,6 +6,16 @@ authors = []
 readme = "README.md"
 requires-python = ">=3.11"
 
+[dependency-groups]
+dev = [
+    "black>=25.1.0",
+    "ipython>=9.1.0",
+    "isort>=6.0.1",
+    "mypy>=1.15.0",
+    "ruff>=0.11.5",
+    "snakeviz>=2.2.2",
+]
+
 
 [tool.uv.workspace]
 members = [
@@ -35,5 +45,21 @@ core = { workspace = true }
 log-tools = { workspace = true }
 path-planner = { workspace = true }
 robot = { workspace = true }
+scale = { workspace = true }
 firmware-tools = { workspace = true }
 registry = { workspace = true }
+
+[tool.black]
+line-length = 100
+
+[tool.isort]
+profile = "black"
+
+[tool.mypy]
+# https://adamj.eu/tech/2021/05/25/python-type-hints-specific-type-ignore/
+show_error_codes = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+
+[tool.ruff]
+line-length = 100

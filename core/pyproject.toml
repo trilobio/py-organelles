@@ -9,25 +9,6 @@ dependencies = [
     "plac>=1.4.5",
 ]
 
-
-[tool.poetry.group.dev]
-optional = true
-
-[tool.poetry.group.dev.dependencies]
-black = "^24.8.0"
-isort = "^5.13.2"
-mypy = "^1.11.1"
-ruff = "^0.1.0"
-
-[tool.black]
-line-length = 100
-
-[tool.isort]
-profile = "black"
-
-[tool.ruff]
-line-length = 100
-
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
