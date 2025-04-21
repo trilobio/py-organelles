@@ -19,7 +19,8 @@ members = [
     "scale",
     "tcode",
     "test-fixture",
-    "path_planner"
+    "path_planner",
+    "registry"
 ]
 
 [tool.uv.sources]
@@ -35,3 +36,4 @@ log-tools = { workspace = true }
 path-planner = { workspace = true }
 robot = { workspace = true }
 firmware-tools = { workspace = true }
+registry = { workspace = true }
