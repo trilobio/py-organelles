@@ -10,11 +10,10 @@ from datetime import datetime
 from logging.handlers import RotatingFileHandler
 from typing import Callable, List, Optional, Union
 
-from pythonjsonlogger import jsonlogger
-
 from log_tools.formatters import ColorFormatter, DurationFormatter  # noqa: F401
 from log_tools.ui import log_level_annotation  # noqa: F401
 from log_tools.utilities import has_similar_handler
+from pythonjsonlogger import jsonlogger
 
 
 def log_timer_factory(logger: logging.Logger) -> Callable:

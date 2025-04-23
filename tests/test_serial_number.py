@@ -47,7 +47,7 @@ class TestPCBSerialNumber(unittest.TestCase):
         with self.assertRaises(ValueError):
             PCBSerialNumber.from_bytes(b"\x00\x01\x02\x03\x04\x05\x06\x07")
 
-        b = b"\x00\x01\x02\x00\x00\x00\x0A"
+        b = b"\x00\x01\x02\x00\x00\x00\x0a"
         sn = PCBSerialNumber.from_bytes(b)
         self.assertEqual(sn.version_id, 2)
         self.assertEqual(sn.instance_id, 10)
@@ -55,7 +55,7 @@ class TestPCBSerialNumber(unittest.TestCase):
 
     def test_to_bytes(self) -> None:
         """Test SerialNumber.to_bytes method."""
-        b = b"\xF4\xA1\x62\xD0\x91\x00\x0A"
+        b = b"\xf4\xa1\x62\xd0\x91\x00\x0a"
         sn = PCBSerialNumber.from_bytes(b)
         self.assertEqual(b, sn.to_bytes())
 
