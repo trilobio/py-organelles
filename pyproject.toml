@@ -36,7 +36,7 @@ members = [
 
 [tool.uv.sources]
 tcode-api = { git = "ssh://git@github.com/trilobio/tcode-api.git", rev = "v1.10.1" }
-transform-tree = { git = "ssh://git@github.com/trilobio/transform-tree.git", rev = "v2.6.0" }
+transform-tree = { git = "ssh://git@github.com/trilobio/transform-tree.git", rev = "v2.7.0" }
 aceta-grpc = { git = "ssh://git@github.com/trilobio/grpc.git", rev = "v1.0.0" }
 
 can-relay = { workspace = true }
