@@ -1,10 +1,9 @@
 """Unsorted logging tools."""
 
 import logging
-from typing import List, Optional
 
 
-def get_handlers(logger: logging.Logger) -> List[logging.Handler]:
+def get_handlers(logger: logging.Logger) -> list[logging.Handler]:
     """Recursively traverse logger hierarchy and return list of all handlers applying to given logger."""
     if not logger.hasHandlers():
         handlers = []
@@ -19,7 +18,7 @@ def get_handlers(logger: logging.Logger) -> List[logging.Handler]:
     return handlers
 
 
-def _get_handler_formatter_str(handler: logging.Handler) -> Optional[str]:
+def _get_handler_formatter_str(handler: logging.Handler) -> str | None:
     return handler.formatter._fmt if handler.formatter is not None else None
 
 

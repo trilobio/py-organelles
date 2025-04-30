@@ -2,22 +2,21 @@
 
 import logging
 import pathlib
-from typing import Union
 
-import plac
+import plac  # type: ignore[import-untyped]
 
 
-def log_level_factory(log_level: Union[str, int]) -> int:
+def log_level_factory(log_level: str | int) -> int:
     """Given log level name or integer representation, returns int."""
     if isinstance(log_level, str):
         # Step 1. is it a str representation of an int?
         try:
-            log_level = int(log_level)
+            return int(log_level)
 
         except ValueError:
             # Step 2: is it a log level name?
             try:
-                log_level = getattr(logging, log_level.upper())
+                return getattr(logging, log_level.upper())
 
             except AttributeError:
                 raise ValueError(

@@ -2,14 +2,14 @@
 
 import csv
 import pathlib
-from typing import Any, List, Union
+from typing import Any
 
 import numpy as np
 
 
 def csv_append_row(
     file_path: pathlib.Path,
-    row: Union[np.ndarray, List[Any], List[List[Any]]],
+    row: np.ndarray | list[Any] | list[list[Any]],
 ) -> None:
     """Append row to given csv."""
     if isinstance(row, list):
@@ -35,7 +35,7 @@ def csv_append_row(
 
 def set_up_csv(
     file_path: pathlib.Path,
-    header: List[str],
+    header: list[str],
     overwrite: bool = False,
     append: bool = False,
 ) -> None:

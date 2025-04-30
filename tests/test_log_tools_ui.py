@@ -14,7 +14,7 @@ class TestGetLogLevel(unittest.TestCase):
         self.assertEqual(log_level_factory("006"), 6)
 
         with self.assertRaises(TypeError):
-            log_level_factory(10.1)
+            log_level_factory(10.1)  # type: ignore [arg-type]
 
         with self.assertRaises(ValueError):
             log_level_factory("not a log level")

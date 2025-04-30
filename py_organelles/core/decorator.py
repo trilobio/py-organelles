@@ -121,11 +121,11 @@ def wrapper_to_decorator(wrapper: Callable) -> Callable:
            the decorated function is a method, otherwise it's None
            - 'args' and 'kwargs' are the arguments passed to the function being decorated
 
-    Example:
+    Example of a decorator:
     ```
     @wrapper_to_decorator
     def print_args(func: Callable, instance: Any, *args, **kwargs) -> Any:
-        \"\"\"Decorator that prints the args of the function\"\"\"
+        \"\"\"Print the args of the function\"\"\"
         print(f'args={','.join([str(a) for a in args])}')
         return func(*args, **kwargs)
 
@@ -136,6 +136,28 @@ def wrapper_to_decorator(wrapper: Callable) -> Callable:
     add(1, 2)
 
     > args=1,2
+    ```
+    Example of a decorator with arguments
+    ```
+    import logging
+    from typing import Any, Callable
+
+    def log_args_factory(logger: logging.Logger) -> Callable:
+        \"\"\"Create a decorator that logs the arguments of a function.\"\"\"
+        @wrapper_to_decorator
+        def log_args(func: Callable, instance: Any, *args, **kwargs) -> Any:
+            \"\"\"Log the arguments of the function.\"\"\"
+            logger.info('args=%s', ','.join(['%s' % a for a in args]))
+            return func(*args, **kwargs)
+
+        return log_args
+
+    @log_args_factory(logging.getLogger(__name__))
+    def add(a: int, b: int) -> int:
+        return a + b
+
+    > args=1,2
+    ```
 
     Args:
         wrapper (Callable): callable object to decorate, typically itself

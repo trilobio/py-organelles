@@ -1,0 +1,68 @@
+"""Unittests for logging decorators."""
+
+import json
+import logging
+import time
+import unittest
+
+from log_tools.decorators import log_enter_exit_factory, log_timer_factory
+
+_logger_name = "unittest_logger"
+
+
+class TestDecorators(unittest.TestCase):
+    """Test that decorators log appropriately."""
+
+    def setUp(self) -> None:
+        if len(logging.root.manager.loggerDict) > 0:
+            assert False, f"loggers left over from last test: {logging.root.manager.loggerDict}"
+        assert (
+            len(logging.root.handlers) == 0
+        ), "Root logger has handlers not cleaned up from last test"
+
+    def tearDown(self) -> None:
+        """Clean up any loggers created during test."""
+        names = list(logging.root.manager.loggerDict.keys())
+        for n in names:
+            del logging.root.manager.loggerDict[n]
+
+        logging.root.handlers.clear()
+
+    def test_log_enter_exit_factory(self) -> None:
+        """Test the log_enter_exit_factory decorator."""
+        logger = logging.getLogger(_logger_name)
+
+        @log_enter_exit_factory(logger)
+        def add_two_ints(a: int, b: int) -> int:
+            """Add two integers."""
+            return a + b
+
+        with self.assertLogs(_logger_name, level="DEBUG") as cm:
+            add_two_ints(1, 2)
+
+        self.assertIn("add_two_ints", cm.output[0])
+        self.assertIn("a=1", cm.output[0])
+        self.assertIn("b=2", cm.output[0])
+
+        self.assertIn("return", cm.output[1])
+        self.assertIn("3", cm.output[1])
+
+        self.assertEqual(add_two_ints.__doc__, "Add two integers.")
+
+    def test_log_timer_factory(self) -> None:
+        """Test the log_timer_factory decorator."""
+        logger = logging.getLogger(_logger_name)
+
+        @log_timer_factory(logger)
+        def sleep_func(dur: float) -> None:
+            """Sleep for dur seconds."""
+            time.sleep(dur)
+
+        with self.assertLogs(_logger_name, level="DEBUG") as cm:
+            sleep_func(0.0005)
+
+        data = json.loads(cm.records[0].message)
+        self.assertIn("sleep_func", data["log_duration_data"]["func_name"])
+        self.assertTrue(data["log_duration_data"]["delta"] >= 0.0005)
+
+        self.assertEqual(sleep_func.__doc__, "Sleep for dur seconds.")
