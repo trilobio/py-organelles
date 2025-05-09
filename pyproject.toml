@@ -12,6 +12,7 @@ dev = [
     "ipython>=9.1.0",
     "isort>=6.0.1",
     "mypy>=1.15.0",
+    "ptpython>=3.0.30",
     "ruff>=0.11.5",
     "snakeviz>=2.2.2",
     "types-protobuf>=5.29.1.20250403",
