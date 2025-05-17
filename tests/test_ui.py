@@ -1,10 +1,10 @@
 """core.ui submodule unittests."""
 
 import enum
-import typing as _t
 import unittest
+from typing import Any
 
-import plac
+import plac  # type: ignore [import-untyped]
 
 from core.ui import create_annotation_from_enum
 
@@ -36,7 +36,7 @@ class TestCreateAnnotationFromEnum(unittest.TestCase):
 
         self.assertEqual(annotation.type("RED"), Color.RED)
 
-    def _catch_system_exit_on_plac_call(self, args) -> _t.Any:
+    def _catch_system_exit_on_plac_call(self, args) -> Any:
         try:
             return plac.call(main, args)
         except SystemExit as e:
