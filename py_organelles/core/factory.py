@@ -6,7 +6,7 @@ from typing import Any, Callable
 
 from core.base import KindInterface
 
-_logger = logging.getLogger("core.factory")
+_logger = logging.getLogger(__name__)
 
 FactoryKey = enum.Enum | str | int | KindInterface
 

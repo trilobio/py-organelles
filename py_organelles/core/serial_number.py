@@ -15,8 +15,7 @@ import re
 import struct
 from typing import NamedTuple, Self
 
-_logger_name = "core.serial_number"
-_logger = logging.getLogger(_logger_name)
+_logger = logging.getLogger(__name__)
 
 
 def _byte_length(i: int) -> int:
@@ -29,6 +28,7 @@ class ProductType(enum.IntEnum):
     j1_and_j2_pcb = 2
     j3_or_j4_pcb = 3
     tool_pcb = 4
+    fts_pcb = 5
 
 
 class Factory(enum.IntEnum):
