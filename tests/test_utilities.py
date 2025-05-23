@@ -4,9 +4,11 @@ import logging
 import unittest
 
 from log_tools.utilities import (
+    LoggerList,
     _get_handler_formatter_str,
     get_handlers,
     has_similar_handler,
+    normalize_logger_list,
 )
 
 
@@ -170,6 +172,38 @@ class TestHasSimilarHandler(LoggerHandlerTestCase):
         self.assertEqual(_get_handler_formatter_str(h1), _get_handler_formatter_str(h2))
 
         self.assertFalse(has_similar_handler(l, h2))
+
+
+class TestNormalizeLoggers(LoggerHandlerTestCase):
+    """Unittests for normalize_loggers() function."""
+
+    def test_normalize_loggers(self) -> None:
+        logger_list: LoggerList = []
+        with self.subTest(logger_list=logger_list):
+            self.assertEqual([], normalize_logger_list(logger_list))
+
+        logger_list = ["test_logger"]
+        with self.subTest(logger_list=logger_list):
+            self.assertEqual([logging.getLogger("test_logger")], normalize_logger_list(logger_list))
+
+        logger_list = "test_logger"
+        with self.subTest(logger_list=logger_list):
+            self.assertEqual([logging.getLogger("test_logger")], normalize_logger_list(logger_list))
+
+        logger_list = [logging.getLogger("test_logger")]
+        with self.subTest(logger_list=logger_list):
+            self.assertEqual([logging.getLogger("test_logger")], normalize_logger_list(logger_list))
+
+        logger_list = logging.getLogger("test_logger")
+        with self.subTest(logger_list=logger_list):
+            self.assertEqual([logging.getLogger("test_logger")], normalize_logger_list(logger_list))
+
+        logger_list = ["test_logger", logging.getLogger("test_logger2")]
+        with self.subTest(logger_list=logger_list):
+            self.assertEqual(
+                [logging.getLogger("test_logger"), logging.getLogger("test_logger2")],
+                normalize_logger_list(logger_list),
+            )
 
 
 if __name__ == "__main__":

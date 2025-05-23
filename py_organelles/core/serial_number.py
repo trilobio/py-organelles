@@ -1,4 +1,4 @@
-"""Base data structure for PCB serial numbers.
+"""Base data structure for serial numbers.
 
 I know, this file holds implementation-specific piece of code that is stored at rather too high of a level.
 This decision was made to avoid the following circular dependency between `config-tools` and `firmware-tools`:
@@ -6,16 +6,11 @@ This decision was made to avoid the following circular dependency between `confi
     - `firmware-tools` imports various tooling from `config-tools` in order to read .toml files
 """
 
-from __future__ import annotations
-
 import ctypes
 import enum
-import logging
 import re
 import struct
 from typing import NamedTuple, Self
-
-_logger = logging.getLogger(__name__)
 
 
 def _byte_length(i: int) -> int:
@@ -50,7 +45,7 @@ class SerialNumber(NamedTuple):
     version_minor: int
     factory: Factory
     line: int  # there is no enum for line because its meaning is factory-dependent
-    index: int  # TODO (mia): Fix the mypy [assignment] error here
+    index: int  # type: ignore [assignment]  # TODO (mia): Fix the mypy [assignment] error here
 
     def pack(self) -> int:
         # check for overflow

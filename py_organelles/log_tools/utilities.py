@@ -2,6 +2,30 @@
 
 import logging
 
+LoggerList = str | logging.Logger | list[str | logging.Logger]
+
+
+def normalize_logger_list(logger_list: LoggerList) -> list[logging.Logger]:
+    """Normalize logger_list argument into a list of loggers.
+
+    :param logger_list: targeted logger(s) or logger name(s)
+
+    :return: list of loggers
+    """
+    loggers: list[logging.Logger] = []
+    if isinstance(logger_list, (str, logging.Logger)):
+        logger_list = [logger_list]
+
+    for entry in logger_list:
+        if isinstance(entry, str):
+            loggers.append(logging.getLogger(entry))
+        elif isinstance(entry, logging.Logger):
+            loggers.append(entry)
+        else:
+            raise TypeError(f"Expected str or logging.Logger, got {type(entry)}")
+
+    return loggers
+
 
 def get_handlers(logger: logging.Logger) -> list[logging.Handler]:
     """Recursively traverse logger hierarchy and return list of all handlers applying to given logger."""
