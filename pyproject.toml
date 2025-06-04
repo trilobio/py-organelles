@@ -9,6 +9,7 @@ requires-python = ">=3.11"
 [dependency-groups]
 dev = [
     "black>=25.1.0",
+    "coverage>=7.8.2",
     "ipython>=9.1.0",
     "isort>=6.0.1",
     "mypy>=1.15.0",
@@ -38,7 +39,7 @@ members = [
 
 [tool.uv.sources]
 # tcode-api = { path = "../tcode-api" }
-tcode-api = { git = "ssh://git@github.com/trilobio/tcode-api.git", rev = "v1.14.0" }
+tcode-api = { git = "ssh://git@github.com/trilobio/tcode-api.git", rev = "v1.17.0" }
 transform-tree = { git = "ssh://git@github.com/trilobio/transform-tree.git", rev = "v2.7.0" }
 aceta-grpc = { git = "ssh://git@github.com/trilobio/grpc.git", rev = "v1.2.0" }
 
