@@ -1,14 +1,14 @@
 """Module for creating standardized object factories."""
 
-import enum
 import logging
 from typing import Any, Callable
 
-from core.base import KindInterface
-
 _logger = logging.getLogger(__name__)
 
-FactoryKey = enum.Enum | str | int | KindInterface
+# This typing has been made less strict to allow for the usage of
+# ObjectFactory in tcode.engine.validation to register validation methods
+# Using type[tcode_api.api.TCode] instances as keys
+FactoryKey = Any  # enum.Enum | str | int | KindInterface
 
 
 class ObjectFactory:
@@ -56,6 +56,10 @@ class ObjectFactory:
             raise ValueError(f"{key} does not have a registered builder")
 
         return builder(*args, **kwargs)
+
+    def __contains__(self, item: FactoryKey) -> bool:
+        """Check if a builder is registered for the given key."""
+        return item in self._builders
 
 
 class MultiBuilderObjectFactory:
