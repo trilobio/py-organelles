@@ -18,3 +18,6 @@ build-backend = "hatchling.build"
 
 [tool.poetry.scripts]
 test = "tests:main"
+
+[dependency-groups]
+dev = []

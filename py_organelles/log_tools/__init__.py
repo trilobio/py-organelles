@@ -8,4 +8,5 @@ from log_tools.helper_functions import (  # noqa: F401
     setup_debug_loggers,
     setup_structured_loggers,
 )
+from log_tools.messages import StructuredJSONMessage  # noqa: F401
 from log_tools.ui import log_level_annotation  # noqa: F401
