@@ -1,19 +1,12 @@
 """Miscellaneous utility functions used across the Trilobio codebase."""
 
-import os
 import pathlib
 from difflib import get_close_matches
 
 
 def get_aceta_root() -> pathlib.Path:
-    """Check for $ACETA_ROOT environment variable, return as Path if exists."""
-    ACETA_ROOT = "ACETA_ROOT"
-    if ACETA_ROOT not in os.environ:
-        raise EnvironmentError(
-            f'Could not find environment variable "{ACETA_ROOT}".'
-            f'Add the path to the aceta repository as an environment variable called "{ACETA_ROOT}"'
-        )
-    return pathlib.Path(os.environ[ACETA_ROOT])
+    """Returns the base directory of aceta"""
+    return pathlib.Path(__file__).parent.parent.parent
 
 
 def check_for_file(file_path: pathlib.Path) -> None:
