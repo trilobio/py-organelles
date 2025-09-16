@@ -25,3 +25,5 @@ hardware/firmware/servo-board/gen
 
 .idea
 .coverage
+
+tcode/data/*
