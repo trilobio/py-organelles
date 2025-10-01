@@ -34,7 +34,7 @@ def log_level_factory(log_level: str | int) -> int:
 log_level_annotation = plac.Annotation(
     help="console stream logging level (ex: info | DEBUG | 30)",
     kind="option",
-    abbrev="ll",
+    abbrev="l",
     type=log_level_factory,
 )
 overwrite_annotation = plac.Annotation(help="Overwrite existing file(s)", kind="flag", abbrev="o")
