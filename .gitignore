@@ -6,7 +6,6 @@ __pycache__
 fp-info-cache
 
 # Editor configuration files
-.python-version
 *.sw*
 .vscode
 
