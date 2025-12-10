@@ -10,7 +10,7 @@ import ctypes
 import enum
 import re
 import struct
-from typing import NamedTuple, Self
+from typing import Iterable, NamedTuple, Self
 
 
 def _byte_length(i: int) -> int:
@@ -127,3 +127,51 @@ class SerialNumber(NamedTuple):
             f"L{self.line:02X}"
             f"N{self.index:04X}"
         )
+
+
+RawSerialNumberListInput = str | SerialNumber | Iterable[str | SerialNumber] | None
+
+
+def sanitize_serial_number_input(raw_input: RawSerialNumberListInput) -> list[SerialNumber]:
+    """Cleans and standardizes a list of serial numbers from various input formats.
+
+    :param raw_input: Input serial numbers in various formats. Can be a single string, a
+        SerialNumber object, a list of strings or SerialNumber objects, or None.
+
+    :return: A list of standardized SerialNumber objects. If input is None, returns an empty list.
+    :raises ExceptionGroup: If any inputs are invalid, raises an ExceptionGroup containing all
+        encountered exceptions as ValueErrors or TypeErrors.
+    """
+    if raw_input is None:
+        return []
+
+    if isinstance(raw_input, (str, SerialNumber)):
+        raw_input = [raw_input]
+
+    try:
+        iter(raw_input)
+    except TypeError:
+        # We could raise this TypeError directly, but wrapping it in a list means that the
+        # error is instead raised as part of an ExceptionGroup below, which makes a more
+        # consistent error interface.
+        raw_input = [raw_input]  # type: ignore [list-item]
+
+    exceptions: list[Exception] = []
+    cleaned_serial_numbers: list[SerialNumber] = []
+    for i, item in enumerate(raw_input):
+        if isinstance(item, SerialNumber):
+            cleaned_serial_numbers.append(item)
+        elif isinstance(item, str):
+            try:
+                cleaned_serial_numbers.append(SerialNumber.from_str(item))
+            except ValueError as ve:
+                exceptions.append(ve)
+        else:
+            exceptions.append(
+                TypeError(f"input {i} has invalid type {type(item)}; expected str or SerialNumber.")
+            )
+
+    if exceptions:
+        raise ExceptionGroup("One or more serial number inputs were invalid.", exceptions)
+
+    return cleaned_serial_numbers
