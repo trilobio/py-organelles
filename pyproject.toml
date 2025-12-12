@@ -1,11 +1,12 @@
 [project]
 name = "aceta"
-version = "0.1.0"
+version = "0.1.1"
 description = "Aceta"
 authors = []
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+    "mypy>=1.19.0",
     "pyserial>=3.5",
 ]
 
@@ -15,7 +16,7 @@ dev = [
     "coverage>=7.8.2",
     "ipython>=9.1.0",
     "isort>=6.0.1",
-    "mypy>=1.15.0",
+    "mypy>=1.19.0",
     "ptpython>=3.0.30",
     "ruff>=0.11.5",
     "snakeviz>=2.2.2",
