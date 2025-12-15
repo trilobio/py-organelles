@@ -3,82 +3,64 @@
 import logging
 import unittest
 
-from log_tools.utilities import (
+from py_organelles.log_tools import (
     LoggerList,
-    _get_handler_formatter_str,
     get_handlers,
     has_similar_handler,
     normalize_logger_list,
 )
+from py_organelles.log_tools.utilities import _get_handler_formatter_str
+from tests.helpers.clean_up_loggers_handlers import CleanUpLoggersHandlersTestCase
 
 
-class LoggerHandlerTestCase(unittest.TestCase):
-    """Base TestCase class, cleans up loggers & handlers between tests."""
-
-    def setUp(self) -> None:
-        if len(logging.root.manager.loggerDict) > 0:
-            assert False, f"loggers left over from last test: {logging.root.manager.loggerDict}"
-        assert (
-            len(logging.root.handlers) == 0
-        ), "Root logger has handlers not cleaned up from last test"
-
-    def tearDown(self) -> None:
-        """Clean up any loggers created during test."""
-        names = list(logging.root.manager.loggerDict.keys())
-        for n in names:
-            del logging.root.manager.loggerDict[n]
-
-        logging.root.handlers.clear()
-
-
-class TestGetHandlers(LoggerHandlerTestCase):
+class TestGetHandlers(CleanUpLoggersHandlersTestCase):
     """Unittests for get_handlers() function."""
 
     def test_no_handler(self) -> None:
         name = "test_no_handler"
-        l = logging.getLogger(name)
-        self.assertTrue(len(get_handlers(l)) == 0)
+        logger = logging.getLogger(name)
+        self.assertTrue(len(get_handlers(logger)) == 0)
 
     def test_no_handler_parent(self) -> None:
         name = "test_no_handler_parent"
-        l = logging.getLogger(f"{name}.child")
-        self.assertTrue(len(get_handlers(l)) == 0)
+        logger = logging.getLogger(f"{name}.child")
+        self.assertTrue(len(get_handlers(logger)) == 0)
 
     def test_has_handler(self) -> None:
         name = "test_has_handler"
-        l = logging.getLogger(name)
-        h = logging.StreamHandler()
-        l.addHandler(h)
-        self.assertTrue(len(get_handlers(l)) == 1)
+        logger = logging.getLogger(name)
+        handler = logging.StreamHandler()
+        logger.addHandler(handler)
+        self.assertTrue(len(get_handlers(logger)) == 1)
 
     def test_parent_has_handler(self) -> None:
         name = "test_parent_has_handler"
         l_parent = logging.getLogger(name)
-        h = logging.StreamHandler()
-        l_parent.addHandler(h)
+        handler = logging.StreamHandler()
+        l_parent.addHandler(handler)
 
-        l = logging.getLogger(f"{name}.child")
-        self.assertTrue(len(get_handlers(l)) == 1)
+        logger = logging.getLogger(f"{name}.child")
+        self.assertTrue(len(get_handlers(logger)) == 1)
 
     def test_root_has_handler(self) -> None:
         name = "test_root_has_handler"
-        h = logging.StreamHandler()
-        logging.root.addHandler(h)
+        handler = logging.StreamHandler()
+        logging.root.addHandler(handler)
 
-        l = logging.getLogger(name)
-        self.assertTrue(len(get_handlers(l)) == 1)
+        logger = logging.getLogger(name)
+        self.assertTrue(len(get_handlers(logger)) == 1)
 
     def test_no_duplicate_handlers(self) -> None:
         name = "test_no_duplicate_handlers"
         l_parent = logging.getLogger(name)
-        h = logging.StreamHandler()
-        l_parent.addHandler(h)
+        handler = logging.StreamHandler()
+        l_parent.addHandler(handler)
 
-        l = logging.getLogger(f"{name}.child")
-        l.addHandler(h)  # Duplicate handler is added
+        logger = logging.getLogger(f"{name}.child")
+        logger.addHandler(handler)  # Duplicate handler is added
         self.assertTrue(
-            len(get_handlers(l)) == 1,
-            f"found {len(get_handlers(l))} handlers, not 1",
+            len(get_handlers(logger)) == 1,
+            f"found {len(get_handlers(logger))} handlers, not 1",
         )
 
     def test_nonduplicate_handlers(self) -> None:
@@ -87,77 +69,77 @@ class TestGetHandlers(LoggerHandlerTestCase):
         h_parent = logging.StreamHandler()
         l_parent.addHandler(h_parent)
 
-        l = logging.getLogger(f"{name}.child")
-        h = logging.StreamHandler()
-        l.addHandler(h)
-        self.assertTrue(len(get_handlers(l)) == 2)
+        logger = logging.getLogger(f"{name}.child")
+        handler = logging.StreamHandler()
+        logger.addHandler(handler)
+        self.assertTrue(len(get_handlers(logger)) == 2)
 
 
-class TestHasSimilarHandler(LoggerHandlerTestCase):
+class TestHasSimilarHandler(CleanUpLoggersHandlersTestCase):
     """Unittests for has_similar_handler() function."""
 
     def test_no_handler(self) -> None:
         name = "test_no_handler"
-        l = logging.getLogger(name)
-        h = logging.StreamHandler()
-        self.assertFalse(has_similar_handler(l, h))
+        logger = logging.getLogger(name)
+        handler = logging.StreamHandler()
+        self.assertFalse(has_similar_handler(logger, handler))
 
     def test_identical_handler(self) -> None:
         name = "test_identical_handler"
-        l = logging.getLogger(name)
-        h = logging.StreamHandler()
-        l.addHandler(h)
+        logger = logging.getLogger(name)
+        handler = logging.StreamHandler()
+        logger.addHandler(handler)
 
-        self.assertTrue(has_similar_handler(l, h))
+        self.assertTrue(has_similar_handler(logger, handler))
 
     def test_identital_parent_handler(self) -> None:
         name = "test_identical_parent_handler"
-        l = logging.getLogger(name)
-        h = logging.StreamHandler()
-        logging.root.addHandler(h)
+        logger = logging.getLogger(name)
+        handler = logging.StreamHandler()
+        logging.root.addHandler(handler)
 
-        self.assertTrue(has_similar_handler(l, h))
+        self.assertTrue(has_similar_handler(logger, handler))
 
     def test_duplicate_handler(self) -> None:
         name = "test_duplicate_handler"
-        l = logging.getLogger(name)
-        h = logging.StreamHandler()
-        l.addHandler(h)
+        logger = logging.getLogger(name)
+        handler = logging.StreamHandler()
+        logger.addHandler(handler)
 
-        self.assertTrue(has_similar_handler(l, logging.StreamHandler()))
+        self.assertTrue(has_similar_handler(logger, logging.StreamHandler()))
 
     def test_different_name(self) -> None:
         name = "test_different_name"
-        l = logging.getLogger(name)
-        h = logging.StreamHandler()
-        h.name = name
-        l.addHandler(h)
+        logger = logging.getLogger(name)
+        handler = logging.StreamHandler()
+        handler.name = name
+        logger.addHandler(handler)
 
-        self.assertFalse(has_similar_handler(l, logging.StreamHandler()))
+        self.assertFalse(has_similar_handler(logger, logging.StreamHandler()))
 
     def test_different_level(self) -> None:
         name = "test_different_level"
-        l = logging.getLogger(name)
-        h = logging.StreamHandler()
-        h.level = 9
-        l.addHandler(h)
+        logger = logging.getLogger(name)
+        handler = logging.StreamHandler()
+        handler.level = 9
+        logger.addHandler(handler)
 
-        self.assertFalse(has_similar_handler(l, logging.StreamHandler()))
+        self.assertFalse(has_similar_handler(logger, logging.StreamHandler()))
 
     def test_different_format_str(self) -> None:
         name = "test_different_format_str"
-        l = logging.getLogger(name)
-        h = logging.StreamHandler()
+        logger = logging.getLogger(name)
+        handler = logging.StreamHandler()
         f = logging.Formatter()
-        h.setFormatter(f)
-        l.addHandler(h)
+        handler.setFormatter(f)
+        logger.addHandler(handler)
 
-        self.assertFalse(has_similar_handler(l, logging.StreamHandler()))
+        self.assertFalse(has_similar_handler(logger, logging.StreamHandler()))
 
     def test_different_class(self) -> None:
         """Handlers with identical criteria but different classes should not be similar."""
         name = "test_different_class"
-        l = logging.getLogger(name)
+        logger = logging.getLogger(name)
         h1 = logging.StreamHandler()
         h2 = logging.NullHandler()
 
@@ -165,16 +147,16 @@ class TestHasSimilarHandler(LoggerHandlerTestCase):
         h1.setFormatter(f)
         h2.setFormatter(f)
 
-        l.addHandler(h1)
+        logger.addHandler(h1)
 
         self.assertEqual(h1.name, h2.name)
         self.assertEqual(h1.level, h2.level)
         self.assertEqual(_get_handler_formatter_str(h1), _get_handler_formatter_str(h2))
 
-        self.assertFalse(has_similar_handler(l, h2))
+        self.assertFalse(has_similar_handler(logger, h2))
 
 
-class TestNormalizeLoggers(LoggerHandlerTestCase):
+class TestNormalizeLoggers(CleanUpLoggersHandlersTestCase):
     """Unittests for normalize_loggers() function."""
 
     def test_normalize_loggers(self) -> None:

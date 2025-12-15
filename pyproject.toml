@@ -1,13 +1,15 @@
 [project]
-name = "aceta"
-version = "0.1.1"
-description = "Aceta"
+name = "py-organelles"
+version = "0.1.0"
+description = "Small yet vital python tools found in all Trilobio python projects"
 authors = []
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "mypy>=1.19.0",
-    "pyserial>=3.5",
+    "numpy>=2.3.5",
+    "plac>=1.4.5",
+    "python-json-logger>=4.0.0",
+    "wrapt>=2.0.1",
 ]
 
 [dependency-groups]
@@ -19,50 +21,7 @@ dev = [
     "mypy>=1.19.0",
     "ptpython>=3.0.30",
     "ruff>=0.11.5",
-    "snakeviz>=2.2.2",
-    "types-protobuf>=5.29.1.20250403",
-    "types-toml>=0.10.8.20240310",
-    "types-requests>=2.32.0.20250602",
-    "types-grpcio>=1.0.0.20251009",
-    "grpcio-reflection>=1.76.0",
 ]
-
-
-[tool.uv.workspace]
-members = [
-    "core",
-    "can_bus",
-    "can-relay",
-    "config-tools",
-    "firmware-tools",
-    "log-tools",
-    "robot",
-    "scale",
-    "tcode",
-    "test-fixture",
-    "path_planner",
-    "registry",
-]
-
-[tool.uv.sources]
-tcode-api = { git = "ssh://git@github.com/trilobio/tcode-api.git", rev = "v1.30.0" }
-# tcode-api = { path = "../tcode-api", editable = true }
-transform-tree = { git = "ssh://git@github.com/trilobio/transform-tree.git", rev = "v2.8.2" }
-# transform-tree = { path = "../transform-tree", editable = true }
-aceta-grpc = { git = "ssh://git@github.com/trilobio/grpc.git", rev = "v1.4.0" }
-# aceta-grpc = { path = "../grpc", editable = true }
-stm32-fdcan-loader = { git = "ssh://git@github.com/trilobio/stm32-fdcan-loader.git", rev = "v0.1.2" }
-
-can-relay = { workspace = true }
-can-bus = { workspace = true }
-config-tools = { workspace = true }
-core = { workspace = true }
-log-tools = { workspace = true }
-path-planner = { workspace = true }
-robot = { workspace = true }
-scale = { workspace = true }
-firmware-tools = { workspace = true }
-registry = { workspace = true }
 
 [tool.black]
 line-length = 100

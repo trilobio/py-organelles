@@ -2,9 +2,13 @@
 
 import unittest
 
-import wrapt  # type: ignore [import-untyped]
+import wrapt
 
-from core import MethodFilter, method_wrapping_metaclass_factory, wrap_object_methods
+from py_organelles import (
+    MethodFilter,
+    method_wrapping_metaclass_factory,
+    wrap_object_methods,
+)
 
 
 class TestMethodWrappingMetaclassFactory(unittest.TestCase):

@@ -3,7 +3,7 @@
 import logging
 import time
 
-from log_tools.formatters import DurationFormatter
+from py_organelles.log_tools import DurationFormatter
 
 _logger_name = "__name__"
 logger = logging.getLogger(_logger_name)

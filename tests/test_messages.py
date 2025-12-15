@@ -1,7 +1,7 @@
 import json
 import unittest
 
-from log_tools import StructuredJSONMessage
+from py_organelles.log_tools import StructuredJSONMessage
 
 
 class TestStructuredJSONMessage(unittest.TestCase):

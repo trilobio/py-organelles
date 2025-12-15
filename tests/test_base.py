@@ -3,7 +3,7 @@
 import enum
 import unittest
 
-from core.base import KindBase
+from py_organelles import KindBase
 
 
 class TestKindBase(unittest.TestCase):

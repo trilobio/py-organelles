@@ -5,14 +5,15 @@ import pathlib
 import tempfile
 from logging.handlers import RotatingFileHandler
 
-from log_tools.constants import DEFAULT_FORMAT_STR
-from log_tools.formatters import ColorFormatter
-from log_tools.utilities import (
+from pythonjsonlogger import jsonlogger
+
+from py_organelles.log_tools.constants import DEFAULT_FORMAT_STR
+from py_organelles.log_tools.formatters import ColorFormatter
+from py_organelles.log_tools.utilities import (
     LoggerList,
     has_similar_handler,
     normalize_logger_list,
 )
-from pythonjsonlogger import jsonlogger
 
 
 def basic_logging_config(

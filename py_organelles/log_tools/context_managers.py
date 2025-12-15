@@ -4,8 +4,8 @@ import logging
 from contextlib import contextmanager
 from typing import Iterator
 
-from log_tools.formatters import ColorFormatter
-from log_tools.utilities import LoggerList, normalize_logger_list
+from py_organelles.log_tools.formatters import ColorFormatter
+from py_organelles.log_tools.utilities import LoggerList, normalize_logger_list
 
 
 @contextmanager

@@ -2,7 +2,7 @@
 
 import unittest
 
-from core.serial_number import SerialNumber, sanitize_serial_number_input
+from py_organelles import SerialNumber, sanitize_serial_number_input
 
 
 class TestSerialNumber(unittest.TestCase):

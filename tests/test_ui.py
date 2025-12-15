@@ -6,7 +6,7 @@ from typing import Any
 
 import plac  # type: ignore [import-untyped]
 
-from core.ui import create_annotation_from_enum
+from py_organelles import create_annotation_from_enum
 
 
 class Color(enum.Enum):

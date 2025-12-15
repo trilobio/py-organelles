@@ -2,7 +2,7 @@
 
 import unittest
 
-from core.context_managers import modify_attribute
+from py_organelles import modify_attribute
 
 
 class TestModifyAttribute(unittest.TestCase):

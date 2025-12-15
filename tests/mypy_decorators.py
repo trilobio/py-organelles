@@ -3,7 +3,7 @@
 import logging
 from typing import TYPE_CHECKING
 
-from log_tools.decorators import log_timer_factory
+from py_organelles.log_tools import log_timer_factory
 
 
 @log_timer_factory(logging.getLogger(__name__))

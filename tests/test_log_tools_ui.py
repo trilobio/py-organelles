@@ -3,7 +3,7 @@
 import logging
 import unittest
 
-from log_tools.ui import log_level_factory
+from py_organelles.log_tools import log_level_factory
 
 
 class TestGetLogLevel(unittest.TestCase):
