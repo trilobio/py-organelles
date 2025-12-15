@@ -4,11 +4,6 @@ import pathlib
 from difflib import get_close_matches
 
 
-def get_aceta_root() -> pathlib.Path:
-    """Returns the base directory of aceta"""
-    return pathlib.Path(__file__).parent.parent.parent
-
-
 def check_for_file(file_path: pathlib.Path) -> None:
     """Raises better FileNotFoundError if file_path does not exist.
 

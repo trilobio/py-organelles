@@ -27,13 +27,15 @@ class KindInterface(Protocol):
 class KindBase(enum.Enum):
     """Base class for Kind enumerations of objects:
 
-    Example.
+    :example:
         ```
         @enum.unique
         class Kind(KindBase):
-            KIND_A = enum.auto()
-            KIND_B = enum.auto()
+            KIND_A = "KIND_A"
+            KIND_B = "KIND_B"
         ```
+
+    :note: using enum.auto is not recommended because it complicates mypy typing.
     """
 
     @classmethod
