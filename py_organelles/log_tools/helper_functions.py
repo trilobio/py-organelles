@@ -2,14 +2,15 @@
 
 import logging
 import pathlib
+import sys
 import tempfile
-from logging.handlers import RotatingFileHandler
 
 from pythonjsonlogger import jsonlogger
 
-from py_organelles.log_tools.constants import DEFAULT_FORMAT_STR
-from py_organelles.log_tools.formatters import ColorFormatter
-from py_organelles.log_tools.utilities import (
+from .constants import DEFAULT_FORMAT_STR
+from .filters import MaxLevelFilter
+from .formatters import ColorFormatter
+from .utilities import (
     LoggerList,
     has_similar_handler,
     normalize_logger_list,
@@ -62,82 +63,78 @@ def basic_logging_config(
 
 def setup_structured_loggers(
     loggers: list[str | logging.Logger],
-    filepath: pathlib.Path,
-    max_bytes: int = int(200e6),
-    backup_count: int = 5,
 ) -> None:
-    """Set up provided loggers to save json-structured debug logs to a rotating file.
+    """Convenience wrapper for setup_journald_loggers tuned for logging structured json data.
 
     :param loggers: loggers to set up, as Logger object or name of logger
-    :type loggers: list[str | logging.Logger]
-    :param filepath: Passed to logging.RotatingFileHandler. Parent dirs are created if
-        they don't exist
-    :type filepath: pathlib.Path
-    :param log_level: logging level for StreamHandler, defaults to logging.INFO
-    :type log_level: int
-    :param max_bytes: Passed to logging.RotatingFileHandler, default is 200 MB
-    :type max_bytes: int
-    :param backup_count: Passed to logging.RotatingFileHandler, default is 5
-    :type backup_count: int
-        filepath (pathlib.Path): file to save structured logs to
-            parent dirs are created in the function if they don't exist
     """
-    # Set up json formatting
-    formatter = jsonlogger.JsonFormatter(
-        "%(RPC)s %(start_time)s %(end_time)s",
+    setup_journald_loggers(
+        loggers=loggers,
+        formatter_type=jsonlogger.JsonFormatter,
+        fmt="%(RPC)s %(start_time)s %(end_time)s",
     )
-
-    # Set up rotating file handler
-    # save up to 1 GB of logs that rotate every 200 MB
-    filepath.parent.mkdir(parents=True, exist_ok=True)
-    file_handler = RotatingFileHandler(filepath, maxBytes=max_bytes, backupCount=backup_count)
-    file_handler.setLevel(logging.DEBUG)
-    file_handler.setFormatter(formatter)
-
-    # Attach handlers to loggers
-    for logger in loggers:
-        logger = logging.getLogger(logger) if isinstance(logger, str) else logger
-        logger.addHandler(file_handler)
 
 
 def setup_debug_loggers(
-    loggers: list[str | logging.Logger],
-    filepath: pathlib.Path,
-    log_level: int = logging.INFO,
-    max_bytes: int = int(200e6),
-    backup_count: int = 5,
+    loggers: LoggerList,
+    log_level: int = 0,
 ) -> None:
-    """Set up provided loggers to save debug logs to a file and stream info logs.
-    Attached to a rotating file handler.
+    """Convenience wrapper for setup_journald_loggers tuned for logging unstructured
+        diagnostic logs.
 
     :param loggers: loggers to set up, as Logger object or name of logger
-    :type loggers: list[str | logging.Logger]
-    :param filepath: Passed to logging.RotatingFileHandler. Parent dirs are created if
-        they don't exist
-    :type filepath: pathlib.Path
-    :param log_level: logging level for StreamHandler, defaults to logging.INFO
-    :type log_level: int
-    :param max_bytes: Passed to logging.RotatingFileHandler, default is 200 MB
-    :type max_bytes: int
-    :param backup_count: Passed to logging.RotatingFileHandler, default is 5
-    :type backup_count: int
+    :param log_level: level above which logs are handled. Defaults to logging everything above 0.
+        Prevents un-handled logs from being stored, and as such not recommended unless you are
+        diagnosing performance issues.
     """
-    formatter = logging.Formatter("%(asctime)s %(levelname)-7s - %(message)s")
+    setup_journald_loggers(
+        loggers=loggers,
+        formatter_type=ColorFormatter,
+        fmt="%(asctime)s %(levelname)-7s - %(message)s",
+        log_level=log_level,
+    )
 
-    # Set up rotating file handler
-    # save up to 1 GB of logs that rotate every 200 MB
-    filepath.parent.mkdir(parents=True, exist_ok=True)
-    file_handler = RotatingFileHandler(filepath, maxBytes=max_bytes, backupCount=backup_count)
-    file_handler.setLevel(logging.DEBUG)
-    file_handler.setFormatter(formatter)
 
-    # Set up stream handler
-    stream_handler = logging.StreamHandler()
-    stream_handler.setLevel(log_level)
-    stream_handler.setFormatter(formatter)
+def setup_journald_loggers(
+    loggers: LoggerList | None = None,
+    # Default value relies on journald to manage timestamp and severity
+    formatter_type: type[logging.Formatter] = logging.Formatter,
+    fmt: str = "%(name)s: %(message)s",
+    log_level: int = 0,
+) -> None:
+    """Set up provided loggers to log to systemd's journald in a standardized manner.
 
-    # Attach handlers to loggers
+    Does the following:
+    - Adds StreamHandler logging <WARNING to stdout
+    - Adds StreamHandler logging >=WARNING to stderr
+
+    :param loggers: loggers to set up, as Logger object or name of logger. If None given,
+        sets up the root logger only.
+    :param formatter_type: formatter class used for stdout & stderr handlers. If not provided,
+        uses the standard logging.Formatter.
+    :param fmt: format string used for stdout & stderr handlers. If not provided,
+        uses a default string that mostly relies on journald to log metadata.
+    :param log_level: level above which logs are handled. Defaults to logging everything above 0.
+        Prevents un-handled logs from being stored, and as such not recommended unless you are
+        diagnosing performance issues.
+    """
+    loggers = loggers or [logging.getLogger()]
+    loggers = normalize_logger_list(loggers)
+
+    formatter = formatter_type(fmt)
+
+    stdout_handler = logging.StreamHandler(sys.stdout)
+    stdout_handler.setLevel(max(log_level, 0))
+    stdout_handler.addFilter(MaxLevelFilter(logging.WARNING))
+    stdout_handler.setFormatter(formatter)
+
+    stderr_handler = logging.StreamHandler()
+    stderr_handler.setLevel(max(log_level, logging.WARNING))
+    stderr_handler.setFormatter(formatter)
+
     for logger in loggers:
-        logger = logging.getLogger(logger) if isinstance(logger, str) else logger
-        logger.addHandler(file_handler)
-        logger.addHandler(stream_handler)
+        logger.setLevel(logging.DEBUG)
+        if not has_similar_handler(logger, stdout_handler):
+            logger.addHandler(stdout_handler)
+        if not has_similar_handler(logger, stderr_handler):
+            logger.addHandler(stderr_handler)
