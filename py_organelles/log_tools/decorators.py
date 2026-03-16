@@ -64,7 +64,7 @@ def log_enter_exit_factory(
             try:
                 retval = wrapped(*args, **kwargs)
             except Exception as err:
-                logger.error(err)
+                logger.error("%s(...) raised %s(%s)", wrapped.__qualname__, type(err).__name__, err)
                 logger.debug(err, exc_info=True)
                 raise
 
