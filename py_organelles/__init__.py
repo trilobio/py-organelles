@@ -3,7 +3,12 @@
 from py_organelles import log_tools
 from py_organelles.core.base import KindBase, KindInterface
 from py_organelles.core.context_managers import modify_attribute
-from py_organelles.core.factory import MultiBuilderObjectFactory, ObjectFactory, BuilderNotFoundError, FactoryKey
+from py_organelles.core.factory import (
+    BuilderNotFoundError,
+    FactoryKey,
+    MultiBuilderObjectFactory,
+    ObjectFactory,
+)
 from py_organelles.core.serial_number import (
     Factory,
     ProductType,
@@ -12,6 +17,7 @@ from py_organelles.core.serial_number import (
     sanitize_serial_number_input,
 )
 from py_organelles.core.ui import create_annotation_from_enum
+from py_organelles.core.units import UnitsError, ValueWithUnits
 from py_organelles.core.utilities import check_for_file
 from py_organelles.core.wrapping import (
     MethodFilter,
@@ -38,4 +44,6 @@ __all__ = [
     "sanitize_serial_number_input",
     "SerialNumber",
     "wrap_object_methods",
+    "UnitsError",
+    "ValueWithUnits",
 ]
