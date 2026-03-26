@@ -1,7 +1,20 @@
 """Unit test base class to ensure loggers and handlers are cleaned up between tests."""
 
+import dataclasses
 import logging
 import unittest
+from typing import TypeAlias
+
+LogLevel: TypeAlias = int
+LoggerName: TypeAlias = str
+
+
+@dataclasses.dataclass
+class LoggerState:
+    level: LogLevel
+    propagate: bool
+    disabled: bool
+    handlers: list[tuple[logging.Handler, LogLevel]]
 
 
 class LoggingIsolatedTestCase(unittest.TestCase):
@@ -11,13 +24,13 @@ class LoggingIsolatedTestCase(unittest.TestCase):
     :warning: Claude generated this
     """
 
-    def setUp(self):
+    def setUp(self) -> None:
         self._logging_snapshot = self._capture_logging_state()
 
-    def tearDown(self):
+    def tearDown(self) -> None:
         self._restore_logging_state(self._logging_snapshot)
 
-    def _capture_logging_state(self) -> dict:
+    def _capture_logging_state(self) -> dict[LoggerName, LoggerState]:
         """
         Walk every logger currently known to the logging manager and record
         its level, propagate flag, disabled flag, and the identity + level of
@@ -38,20 +51,20 @@ class LoggingIsolatedTestCase(unittest.TestCase):
 
         return snapshot
 
-    def _capture_single_logger(self, logger: logging.Logger) -> dict:
-        return {
-            "level": logger.level,
-            "propagate": logger.propagate,
-            "disabled": logger.disabled,
+    def _capture_single_logger(self, logger: logging.Logger) -> LoggerState:
+        return LoggerState(
+            level=logger.level,
+            propagate=logger.propagate,
+            disabled=logger.disabled,
             # Store handler objects paired with their level at snapshot time.
             # We restore the handler list and each handler's level, but we do
             # NOT deep-copy handlers — the same handler objects are reattached,
             # which is the right behaviour for things like StreamHandlers that
             # wrap live file descriptors.
-            "handlers": [(h, h.level) for h in logger.handlers],
-        }
+            handlers=[(h, h.level) for h in logger.handlers],
+        )
 
-    def _restore_logging_state(self, snapshot: dict):
+    def _restore_logging_state(self, snapshot: dict[LoggerName, LoggerState]) -> None:
         """
         1. Remove every logger that did not exist before the test.
         2. Restore the attributes of every logger that did exist.
@@ -79,16 +92,16 @@ class LoggingIsolatedTestCase(unittest.TestCase):
 
             self._restore_single_logger(logger, state)
 
-    def _restore_single_logger(self, logger: logging.Logger, state: dict):
-        logger.setLevel(state["level"])
-        logger.propagate = state["propagate"]
-        logger.disabled = state["disabled"]
+    def _restore_single_logger(self, logger: logging.Logger, state: LoggerState) -> None:
+        logger.setLevel(state.level)
+        logger.propagate = state.propagate
+        logger.disabled = state.disabled
 
         # Detach all current handlers without closing them — the test owns
         # any handlers it created; we just want them off this logger.
         logger.handlers.clear()
 
         # Re-attach the original handlers and restore their levels.
-        for handler, level in state["handlers"]:
+        for handler, level in state.handlers:
             handler.setLevel(level)
             logger.addHandler(handler)
