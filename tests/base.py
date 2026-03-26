@@ -3,38 +3,92 @@
 import logging
 import unittest
 
-_EXPECTED_LOGGERS: tuple[str, ...] = (
-    "py_organelles",
-    "py_organelles.core",
-    "py_organelles.core.factory",
-    "py_organelles.core.wrapping",
-)
 
+class LoggingIsolatedTestCase(unittest.TestCase):
+    """Test case that snapshots and restores the complete logging state around each test,
+    so logger/handler mutations never leak between tests.
 
-class CleanUpLoggersHandlersTestCase(unittest.TestCase):
-    """TestCase class that cleans up loggers & handlers between tests."""
+    :warning: Claude generated this
+    """
 
-    def setUp(self) -> None:
-        """Ensure logging state is fully reset from last test."""
+    def setUp(self):
+        self._logging_snapshot = self._capture_logging_state()
 
-        leftover_loggers: list[str] = []
-        if len(logging.root.manager.loggerDict) > 0:
-            for logger_name in logging.root.manager.loggerDict:
-                if logger_name not in _EXPECTED_LOGGERS:
-                    leftover_loggers.append(logger_name)
+    def tearDown(self):
+        self._restore_logging_state(self._logging_snapshot)
 
-        assert (
-            len(leftover_loggers) == 0
-        ), f"loggers left over from last test: {[(k, v) for k, v in logging.root.manager.loggerDict.items() if k in leftover_loggers]}"
+    def _capture_logging_state(self) -> dict:
+        """
+        Walk every logger currently known to the logging manager and record
+        its level, propagate flag, disabled flag, and the identity + level of
+        every attached handler.  The root logger is included under the empty
+        string key "".
+        """
+        snapshot = {}
 
-        assert (
-            len(logging.root.handlers) == 0
-        ), "Root logger has handlers not cleaned up from last test"
+        # Root logger
+        root = logging.root
+        snapshot[""] = self._capture_single_logger(root)
 
-    def tearDown(self) -> None:
-        """Clean up any loggers created during test."""
-        names = list(logging.root.manager.loggerDict.keys())
-        for n in names:
-            del logging.root.manager.loggerDict[n]
+        # All named loggers that have been instantiated so far
+        manager = logging.Logger.manager
+        for name, logger_or_placeholder in manager.loggerDict.items():
+            if isinstance(logger_or_placeholder, logging.Logger):
+                snapshot[name] = self._capture_single_logger(logger_or_placeholder)
 
-        logging.root.handlers.clear()
+        return snapshot
+
+    def _capture_single_logger(self, logger: logging.Logger) -> dict:
+        return {
+            "level": logger.level,
+            "propagate": logger.propagate,
+            "disabled": logger.disabled,
+            # Store handler objects paired with their level at snapshot time.
+            # We restore the handler list and each handler's level, but we do
+            # NOT deep-copy handlers — the same handler objects are reattached,
+            # which is the right behaviour for things like StreamHandlers that
+            # wrap live file descriptors.
+            "handlers": [(h, h.level) for h in logger.handlers],
+        }
+
+    def _restore_logging_state(self, snapshot: dict):
+        """
+        1. Remove every logger that did not exist before the test.
+        2. Restore the attributes of every logger that did exist.
+        3. Leave the logging.Manager itself intact so the framework stays usable.
+        """
+        manager = logging.Logger.manager
+
+        # --- Remove loggers created during the test ---
+        extra_names = set(
+            name
+            for name, obj in manager.loggerDict.items()
+            if isinstance(obj, logging.Logger) and name not in snapshot
+        )
+        for name in extra_names:
+            del manager.loggerDict[name]
+
+        # --- Restore pre-existing loggers ---
+        for name, state in snapshot.items():
+            if name == "":
+                logger: logging.Logger = logging.root
+            else:
+                # Use getLogger so placeholders are promoted if needed, but
+                # at this point the logger should already exist in the dict.
+                logger = logging.getLogger(name)
+
+            self._restore_single_logger(logger, state)
+
+    def _restore_single_logger(self, logger: logging.Logger, state: dict):
+        logger.setLevel(state["level"])
+        logger.propagate = state["propagate"]
+        logger.disabled = state["disabled"]
+
+        # Detach all current handlers without closing them — the test owns
+        # any handlers it created; we just want them off this logger.
+        logger.handlers.clear()
+
+        # Re-attach the original handlers and restore their levels.
+        for handler, level in state["handlers"]:
+            handler.setLevel(level)
+            logger.addHandler(handler)

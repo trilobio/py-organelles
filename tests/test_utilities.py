@@ -11,10 +11,10 @@ from py_organelles.log_tools import (
 )
 from py_organelles.log_tools.utilities import _get_handler_formatter_str
 
-from .base import CleanUpLoggersHandlersTestCase
+from .base import LoggingIsolatedTestCase
 
 
-class TestGetHandlers(CleanUpLoggersHandlersTestCase):
+class TestGetHandlers(LoggingIsolatedTestCase):
     """Unittests for get_handlers() function."""
 
     def test_no_handler(self) -> None:
@@ -76,7 +76,7 @@ class TestGetHandlers(CleanUpLoggersHandlersTestCase):
         self.assertTrue(len(get_handlers(logger)) == 2)
 
 
-class TestHasSimilarHandler(CleanUpLoggersHandlersTestCase):
+class TestHasSimilarHandler(LoggingIsolatedTestCase):
     """Unittests for has_similar_handler() function."""
 
     def test_no_handler(self) -> None:
@@ -157,7 +157,7 @@ class TestHasSimilarHandler(CleanUpLoggersHandlersTestCase):
         self.assertFalse(has_similar_handler(logger, h2))
 
 
-class TestNormalizeLoggers(CleanUpLoggersHandlersTestCase):
+class TestNormalizeLoggers(LoggingIsolatedTestCase):
     """Unittests for normalize_loggers() function."""
 
     def test_normalize_loggers(self) -> None:
