@@ -25,18 +25,19 @@ from py_organelles.log_tools.utilities import (
 )
 
 __all__ = [
+    "ColorFormatter",
+    "DurationFormatter",
+    "LoggerList",
+    "StructuredJSONMessage",
     "append_annotation",
     "basic_logging_config",
     "csv_append_row",
-    "ColorFormatter",
-    "DurationFormatter",
     "get_handlers",
     "has_similar_handler",
     "log_enter_exit_factory",
     "log_level_annotation",
     "log_level_factory",
     "log_timer_factory",
-    "LoggerList",
     "modify_log_level",
     "normalize_logger_list",
     "output_dir_annotation",
@@ -45,5 +46,4 @@ __all__ = [
     "setup_debug_loggers",
     "setup_structured_loggers",
     "stream_logs",
-    "StructuredJSONMessage",
 ]
