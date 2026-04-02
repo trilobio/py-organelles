@@ -546,8 +546,8 @@ wheels = [
 
 [[package]]
 name = "py-organelles"
-version = "0.1.0"
-source = { virtual = "." }
+version = "1.0.1"
+source = { editable = "." }
 dependencies = [
     { name = "numpy" },
     { name = "plac" },
@@ -571,7 +571,7 @@ requires-dist = [
     { name = "numpy", specifier = ">=2.3.5" },
     { name = "plac", specifier = ">=1.4.5" },
     { name = "python-json-logger", specifier = ">=4.0.0" },
-    { name = "wrapt", specifier = ">=2.0.1" },
+    { name = "wrapt" },
 ]
 
 [package.metadata.requires-dev]

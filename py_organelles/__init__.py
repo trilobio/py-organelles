@@ -3,7 +3,12 @@
 from py_organelles import log_tools
 from py_organelles.core.base import KindBase, KindInterface
 from py_organelles.core.context_managers import modify_attribute
-from py_organelles.core.factory import MultiBuilderObjectFactory, ObjectFactory, BuilderNotFoundError, FactoryKey
+from py_organelles.core.factory import (
+    BuilderNotFoundError,
+    FactoryKey,
+    MultiBuilderObjectFactory,
+    ObjectFactory,
+)
 from py_organelles.core.serial_number import (
     Factory,
     ProductType,
