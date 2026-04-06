@@ -17,6 +17,7 @@ from py_organelles.core.serial_number import (
     sanitize_serial_number_input,
 )
 from py_organelles.core.ui import create_annotation_from_enum
+from py_organelles.core.units import Q_, IncompatibleUnitsError, ValueWithUnits
 from py_organelles.core.utilities import check_for_file
 from py_organelles.core.wrapping import (
     MethodFilter,
@@ -26,21 +27,24 @@ from py_organelles.core.wrapping import (
 
 __all__ = [
     "BuilderNotFoundError",
-    "check_for_file",
-    "create_annotation_from_enum",
     "Factory",
     "FactoryKey",
+    "IncompatibleUnitsError",
     "KindBase",
     "KindInterface",
-    "log_tools",
-    "method_wrapping_metaclass_factory",
     "MethodFilter",
-    "modify_attribute",
     "MultiBuilderObjectFactory",
     "ObjectFactory",
     "ProductType",
+    "Q_",
     "RawSerialNumberListInput",
-    "sanitize_serial_number_input",
     "SerialNumber",
+    "ValueWithUnits",
+    "check_for_file",
+    "create_annotation_from_enum",
+    "log_tools",
+    "method_wrapping_metaclass_factory",
+    "modify_attribute",
+    "sanitize_serial_number_input",
     "wrap_object_methods",
 ]
