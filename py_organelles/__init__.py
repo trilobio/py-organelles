@@ -9,6 +9,7 @@ from py_organelles.core.factory import (
     MultiBuilderObjectFactory,
     ObjectFactory,
 )
+from py_organelles.core.prompt import prompt_choice, prompt_yes_no
 from py_organelles.core.serial_number import (
     Factory,
     ProductType,
@@ -45,6 +46,8 @@ __all__ = [
     "log_tools",
     "method_wrapping_metaclass_factory",
     "modify_attribute",
+    "prompt_choice",
+    "prompt_yes_no",
     "sanitize_serial_number_input",
     "wrap_object_methods",
 ]
