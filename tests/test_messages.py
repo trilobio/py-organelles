@@ -5,7 +5,6 @@ from py_organelles.log_tools import StructuredJSONMessage
 
 
 class TestStructuredJSONMessage(unittest.TestCase):
-
     def test_json_intake_message(self) -> None:
         """Verify that str() representation of StructuredJSONMessage is a valid JSON string."""
         messages = [

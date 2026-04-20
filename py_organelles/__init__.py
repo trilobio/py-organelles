@@ -9,6 +9,7 @@ from py_organelles.core.factory import (
     MultiBuilderObjectFactory,
     ObjectFactory,
 )
+from py_organelles.core.prompt import prompt_choice, prompt_yes_no
 from py_organelles.core.serial_number import (
     Factory,
     ProductType,
@@ -16,7 +17,14 @@ from py_organelles.core.serial_number import (
     SerialNumber,
     sanitize_serial_number_input,
 )
+from py_organelles.core.transform import (
+    euler_angles_from_rotation_matrix,
+    rotation_from_euler_angles,
+    transform_from_euler_angles,
+)
+from py_organelles.core.types import Matrix
 from py_organelles.core.ui import create_annotation_from_enum
+from py_organelles.core.units import Q_, IncompatibleUnitsError, ValueWithUnits
 from py_organelles.core.utilities import check_for_file
 from py_organelles.core.wrapping import (
     MethodFilter,
@@ -25,22 +33,31 @@ from py_organelles.core.wrapping import (
 )
 
 __all__ = [
+    "Q_",
     "BuilderNotFoundError",
-    "check_for_file",
-    "create_annotation_from_enum",
     "Factory",
     "FactoryKey",
+    "IncompatibleUnitsError",
     "KindBase",
     "KindInterface",
-    "log_tools",
-    "method_wrapping_metaclass_factory",
+    "Matrix",
     "MethodFilter",
-    "modify_attribute",
     "MultiBuilderObjectFactory",
     "ObjectFactory",
     "ProductType",
     "RawSerialNumberListInput",
-    "sanitize_serial_number_input",
     "SerialNumber",
+    "ValueWithUnits",
+    "check_for_file",
+    "create_annotation_from_enum",
+    "euler_angles_from_rotation_matrix",
+    "log_tools",
+    "method_wrapping_metaclass_factory",
+    "modify_attribute",
+    "prompt_choice",
+    "prompt_yes_no",
+    "rotation_from_euler_angles",
+    "sanitize_serial_number_input",
+    "transform_from_euler_angles",
     "wrap_object_methods",
 ]

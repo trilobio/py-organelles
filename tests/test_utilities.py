@@ -10,7 +10,7 @@ from py_organelles.log_tools import (
     normalize_logger_list,
 )
 from py_organelles.log_tools.utilities import _get_handler_formatter_str
-from tests.helpers.clean_up_loggers_handlers import CleanUpLoggersHandlersTestCase
+from tests.base import CleanUpLoggersHandlersTestCase
 
 
 class TestGetHandlers(CleanUpLoggersHandlersTestCase):

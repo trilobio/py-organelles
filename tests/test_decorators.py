@@ -5,7 +5,7 @@ import logging
 import time
 
 from py_organelles.log_tools import log_enter_exit_factory, log_timer_factory
-from tests.helpers.clean_up_loggers_handlers import CleanUpLoggersHandlersTestCase
+from tests.base import CleanUpLoggersHandlersTestCase
 
 _logger_name = "unittest_logger"
 
