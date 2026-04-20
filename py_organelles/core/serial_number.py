@@ -103,11 +103,7 @@ class SerialNumber(NamedTuple):
     @classmethod
     def from_str(cls, s: str) -> Self:
         m = re.fullmatch(
-            "T([0-9A-F]{4})"
-            "V([0-9A-F]{2})([0-9A-F]{2})"
-            "F([0-9A-F]{2})"
-            "L([0-9A-F]{2})"
-            "N([0-9A-F]{4})",
+            "T([0-9A-F]{4})V([0-9A-F]{2})([0-9A-F]{2})F([0-9A-F]{2})L([0-9A-F]{2})N([0-9A-F]{4})",
             s,
         )
 

@@ -109,8 +109,7 @@ class ValueWithUnits(BaseModel):
             pint_quantity = Q_(self.magnitude, self.units) + Q_(other.magnitude, other.units)
         except DimensionalityError as e:
             raise IncompatibleUnitsError(
-                f"Cannot add quantities with incompatible units: "
-                f"'{self.units}' and '{other.units}'"
+                f"Cannot add quantities with incompatible units: '{self.units}' and '{other.units}'"
             ) from e
         return ValueWithUnits(magnitude=pint_quantity.magnitude, units=str(pint_quantity.units))
 

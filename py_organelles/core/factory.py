@@ -36,7 +36,7 @@ class ObjectFactory:
         """
         if not override and key in self._builders:
             raise ValueError(
-                f"{key} already has a registered builder; " "provide override=True to replace it"
+                f"{key} already has a registered builder; provide override=True to replace it"
             )
 
         self._builders[key] = builder

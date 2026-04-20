@@ -28,7 +28,6 @@ class TestMethodWrappingMetaclassFactory(unittest.TestCase):
         )
 
         class TestClass(metaclass=TestMetaclass):  # type: ignore [metaclass]
-
             def __init__(self):
                 self.counter = 0
 
@@ -79,7 +78,6 @@ class TestWrapObjectMethods(unittest.TestCase):
             return wrapped(*args, **kwargs)
 
         class TestClass:
-
             def __init__(self):
                 self.counter = 0
 
@@ -141,7 +139,6 @@ class TestWrapObjectMethods(unittest.TestCase):
             return wrapped(*args, **kwargs)
 
         class TestClass:
-
             def __init__(self):
                 self.counter_inner = 0
                 self.counter_outer = 0
