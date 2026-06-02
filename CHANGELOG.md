@@ -35,6 +35,9 @@ def main(
 ):
     basic_logging_config(_logger, stream_log_level=log_level, format_str=log_format_str)
 ```
+### Fixed
+#### `log_tools` Submodule
+- Bad documentation for helper function `setup_structured_loggers`.
 
 ---
 
