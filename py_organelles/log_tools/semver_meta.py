@@ -18,7 +18,7 @@ class SemverMeta:
     git_dirty: bool | None  # None means "couldn't determine"
 
 
-def _run(cmd: list[str]) -> str:
+def _run(cmd: list[str]) -> str | None:
     """Run a command and return its output, or 'unknown' if it fails."""
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=2)
@@ -26,7 +26,7 @@ def _run(cmd: list[str]) -> str:
         return result.stdout.strip()
     except Exception as err:
         _logger.error(f"Error running command '{' '.join(cmd)}': {err}")
-        return "unknown"
+        return None
 
 
 def get_semver_meta(package_name: str) -> SemverMeta:
@@ -39,10 +39,11 @@ def get_semver_meta(package_name: str) -> SemverMeta:
         _logger.error("Error determining package version: package not found")
 
     # Git metadata
-    git_hash = _run(["git", "rev-parse", "HEAD"])
+    git_hash = _run(["git", "rev-parse", "HEAD"]) or "unknown"
 
     # Determine if git repo is dirty
-    git_dirty = len(_run(["git", "status", "--porcelain"])) > 0
+    retval = _run(["git", "status", "--porcelain"])
+    git_dirty = None if retval is None else len(retval) > 0
 
     return SemverMeta(
         package_name=package_name,
