@@ -1,6 +1,6 @@
 [project]
 name = "py-organelles"
-version = "1.2.0"
+version = "1.3.0"
 description = "Small yet vital python tools found in all Trilobio python projects"
 authors = []
 readme = "README.md"
