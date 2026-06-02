@@ -5,7 +5,7 @@ Format: [Semantic Versioning](https://semver.org)
 
 ---
 
-## [Unreleased]
+## [v1.2.0]
 ### Added
 #### `log_tools` submodule
 - `get_semver_meta()` - retrieve version of the provided package, along with the current state of the git environment.
