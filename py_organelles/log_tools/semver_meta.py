@@ -19,7 +19,7 @@ class SemverMeta:
 
 
 def _run(cmd: list[str]) -> str | None:
-    """Run a command and return its output, or 'unknown' if it fails."""
+    """Run a command and return its stdout (stripped), or None if it fails."""
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=2)
         result.check_returncode()
@@ -36,7 +36,7 @@ def get_semver_meta(package_name: str) -> SemverMeta:
         version = importlib.metadata.version(package_name)
     except importlib.metadata.PackageNotFoundError:
         version = "unknown"
-        _logger.error("Error determining package version: package not found")
+        _logger.error("Error determining package version for '%s': package not found", package_name)
 
     # Git metadata
     git_hash = _run(["git", "rev-parse", "HEAD"]) or "unknown"

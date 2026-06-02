@@ -46,9 +46,9 @@ class TestGetSemverMeta(unittest.TestCase):
     @mock.patch("py_organelles.log_tools.semver_meta._run")
     def test_get_semver_meta_package_not_found(self, mock_run, mock_version) -> None:
         """Test that get_semver_meta() handles package not found error."""
-        # Setup mocks
-        mock_version.side_effect = semver_meta.importlib.metadata.PackageNotFoundError
-        mock_run.side_effect = ["abc123", ""]
+        mock_version.side_effect = semver_meta.importlib.metadata.PackageNotFoundError(
+            "nonexistent-package",
+        )
 
         # Call the function
         with modify_log_level(semver_meta._logger, logging.FATAL):
