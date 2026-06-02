@@ -126,7 +126,7 @@ def setup_debug_loggers(
     :type max_bytes: int
     :param backup_count: Passed to logging.RotatingFileHandler, default is 5
     :type backup_count: int
-    :param format_str: passed to jsonlogger.JsonFormatter, defaults to DEBUG_LOG_FORMAT_STR
+    :param format_str: passed to logging.Formatter, defaults to DEBUG_LOG_FORMAT_STR;
         See https://docs.python.org/3/library/logging.html#logrecord-attributes for format info
     :type format_str: str
     """
