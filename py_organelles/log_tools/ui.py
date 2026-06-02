@@ -40,7 +40,7 @@ log_level_annotation = plac.Annotation(
 log_format_str_annotation = plac.Annotation(
     help="console stream logging format string (ex: '%(asctime)s - %(levelname)s - %(message)s')",
     kind="option",
-    abbrev="f",
+    abbrev="fmt",
     type=str,
 )
 overwrite_annotation = plac.Annotation(help="Overwrite existing file(s)", kind="flag", abbrev="o")
