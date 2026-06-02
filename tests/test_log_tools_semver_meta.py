@@ -49,6 +49,7 @@ class TestGetSemverMeta(unittest.TestCase):
         mock_version.side_effect = semver_meta.importlib.metadata.PackageNotFoundError(
             "nonexistent-package",
         )
+        mock_run.side_effect = ["abc123", ""]
 
         # Call the function
         with modify_log_level(semver_meta._logger, logging.FATAL):
