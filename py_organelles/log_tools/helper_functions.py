@@ -78,8 +78,6 @@ def setup_structured_loggers(
     :param filepath: Passed to logging.RotatingFileHandler. Parent dirs are created if
         they don't exist
     :type filepath: pathlib.Path
-    :param log_level: logging level for StreamHandler, defaults to logging.INFO
-    :type log_level: int
     :param max_bytes: Passed to logging.RotatingFileHandler, default is 200 MB
     :type max_bytes: int
     :param backup_count: Passed to logging.RotatingFileHandler, default is 5
