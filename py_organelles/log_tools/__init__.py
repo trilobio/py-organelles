@@ -10,6 +10,7 @@ from py_organelles.log_tools.helper_functions import (
     setup_structured_loggers,
 )
 from py_organelles.log_tools.messages import StructuredJSONMessage
+from py_organelles.log_tools.semver_meta import SemverMeta, get_semver_meta
 from py_organelles.log_tools.ui import (
     append_annotation,
     log_level_annotation,
@@ -28,11 +29,13 @@ __all__ = [
     "ColorFormatter",
     "DurationFormatter",
     "LoggerList",
+    "SemverMeta",
     "StructuredJSONMessage",
     "append_annotation",
     "basic_logging_config",
     "csv_append_row",
     "get_handlers",
+    "get_semver_meta",
     "has_similar_handler",
     "log_enter_exit_factory",
     "log_level_annotation",
