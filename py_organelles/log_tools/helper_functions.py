@@ -15,7 +15,7 @@ from py_organelles.log_tools.utilities import (
 )
 
 BASIC_LOG_FORMAT_STR = "%(name)s.%(levelname)s: %(message)s"
-DEBUG_LOG_FORMAT_STR = "%(asctime)s %(name)s.%(levelname)s: %(message)s"
+DEBUG_LOG_FORMAT_STR = "%(asctime)s %(levelname)-7s - %(message)s"
 STRUCTURED_LOG_FORMAT_STR = "%(RPC)s %(start_time)s %(end_time)s"
 
 
