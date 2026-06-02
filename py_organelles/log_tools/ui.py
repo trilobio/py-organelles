@@ -37,6 +37,12 @@ log_level_annotation = plac.Annotation(
     abbrev="l",
     type=log_level_factory,
 )
+log_format_str_annotation = plac.Annotation(
+    help="console stream logging format string (ex: '%(asctime)s - %(levelname)s - %(message)s')",
+    kind="option",
+    abbrev="f",
+    type=str,
+)
 overwrite_annotation = plac.Annotation(help="Overwrite existing file(s)", kind="flag", abbrev="o")
 append_annotation = plac.Annotation(help="Append to existing file(s)", kind="flag", abbrev="a")
 output_dir_annotation = plac.Annotation(
