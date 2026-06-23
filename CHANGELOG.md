@@ -3,6 +3,11 @@
 All notable changes to this project will be documented here.
 Format: [Semantic Versioning](https://semver.org)
 
+## [Unreleased]
+
+### Fixed
+- Commit hook now raises errors appropriately.
+
 ---
 
 ## [v1.3.0]
