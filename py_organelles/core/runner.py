@@ -175,7 +175,11 @@ class Runner:
 
         :param fix: Whether to pass ``--fix`` to ``ruff check`` (default: true).
         """
-        self._run_command(["uv", "run", "ruff", "format", "./"])
+        format_command = ["uv", "run", "ruff", "format"]
+        if not fix:
+            format_command.append("--check")
+        format_command.append("./")
+        self._run_command(format_command)
         check_command = ["uv", "run", "ruff", "check"]
         if fix:
             check_command.append("--fix")
@@ -220,12 +224,12 @@ class Runner:
         """
         if command is None:
             self._print_help()
-        elif command in self._ORDERED_COMMANDS:
+        elif command in self.commands:
             self._print_command_help(command)
         else:
             self._console.print(
                 f"[red]Unknown command {markup_escape(command)!r}. "
-                f"Choose from: {', '.join(self._ORDERED_COMMANDS)}.[/red]"
+                f"Choose from: {', '.join(self.commands)}.[/red]"
             )
 
     # ── Help rendering ───────────────────────────────────────────
@@ -253,7 +257,7 @@ class Runner:
         table = Table(show_header=True, header_style="bold blue", box=None, pad_edge=False)
         table.add_column("Command", style="green", no_wrap=True)
         table.add_column("Description")
-        for command in self._ORDERED_COMMANDS:
+        for command in self.commands:
             table.add_row(command, markup_escape(self._command_summary(command)))
         self._console.print(table)
 
@@ -282,7 +286,7 @@ class Runner:
             if target is not None and target not in self.commands:
                 self._console.print(
                     f"[red]Error: unknown command {markup_escape(target)!r}. "
-                    f"Choose from: {', '.join(self._ORDERED_COMMANDS)}.[/red]"
+                    f"Choose from: {', '.join(self.commands)}.[/red]"
                 )
                 return 1
             self.help(target)
@@ -312,7 +316,7 @@ class Runner:
         prompt = _render_prompt("[blue]runner>[/blue] ")
         self._console.print(
             "[blue]Developer task runner.[/blue] "
-            f"Commands: {', '.join(self._ORDERED_COMMANDS)}. "
+            f"Commands: {', '.join(self.commands)}. "
             "Type 'help' for details, or press Ctrl-D to exit."
         )
         # ``interact`` manages its own ``with self:`` context and reports per-command
