@@ -10,6 +10,7 @@ from py_organelles.core.factory import (
     ObjectFactory,
 )
 from py_organelles.core.prompt import prompt_choice, prompt_yes_no
+from py_organelles.core.runner import CommandError, Runner
 from py_organelles.core.serial_number import (
     Factory,
     ProductType,
@@ -35,6 +36,7 @@ from py_organelles.core.wrapping import (
 __all__ = [
     "Q_",
     "BuilderNotFoundError",
+    "CommandError",
     "Factory",
     "FactoryKey",
     "IncompatibleUnitsError",
@@ -46,6 +48,7 @@ __all__ = [
     "ObjectFactory",
     "ProductType",
     "RawSerialNumberListInput",
+    "Runner",
     "SerialNumber",
     "ValueWithUnits",
     "check_for_file",

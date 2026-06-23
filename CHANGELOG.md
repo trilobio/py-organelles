@@ -3,6 +3,13 @@
 All notable changes to this project will be documented here.
 Format: [Semantic Versioning](https://semver.org)
 
+## [v1.4.0]
+### Added
+- `Runner` task-runner and documentation (docs/runner.md) of it's usage.
+- `CommandError` plac-compatible exception for use in `Runner` tasks.
+- Standard documentation for setting up commit-hooks to run `Runner` tasks on commit.
+- `runner.py` at module-level for running py-organelles linting, formatting, and testing.
+
 ---
 
 ## [v1.3.0]

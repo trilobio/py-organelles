@@ -1,9 +1,3 @@
 #!/usr/bin/env bash
-set +e
-
-# Run linting tools
-uv run ruff format --check
-uv run ruff check
-
-# Run type checking
-uv run mypy ./
+set -euo pipefail
+exec uv run python runner.py all
