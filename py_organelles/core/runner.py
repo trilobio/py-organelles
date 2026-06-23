@@ -119,10 +119,7 @@ class Runner:
     :param console: An optional pre-configured rich :class:`~rich.console.Console`.
     """
 
-    # ``plac.Interpreter`` replaces the instance's ``commands`` with an unordered set at
-    # runtime, so keep a separate ordered copy for help rendering and usage messages.
-    _ORDERED_COMMANDS = ("format", "lint", "test", "all", "help")
-    commands = list(_ORDERED_COMMANDS)
+    commands = ["format", "lint", "test", "all", "help"]
 
     def __init__(
         self,
