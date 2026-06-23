@@ -137,7 +137,7 @@ class TestRunnerCommands(unittest.TestCase):
             runner.all()
         commands = [call.args[0] for call in run.call_args_list]
         # format (no --fix), then lint, then test.
-        self.assertEqual(commands[0], ["uv", "run", "ruff", "format", "./"])
+        self.assertEqual(commands[0], ["uv", "run", "ruff", "format", "--check", "./"])
         self.assertEqual(commands[1], ["uv", "run", "ruff", "check", "./"])
         self.assertEqual(commands[2], ["uv", "run", "mypy", "./"])
         self.assertEqual(commands[3], ["uv", "run", "python", "-m", "unittest", "discover"])
