@@ -5,6 +5,17 @@ Format: [Semantic Versioning](https://semver.org)
 
 ---
 
+## [v2.0.0]
+### Changed
+#### `log_tools` Submodule
+- `setup_debug_loggers` is now non-blocking: records are placed on a bounded in-memory queue (new `queue_size` arg, default 65,536 records) and written to the file and stream handlers by a background thread, buffering slow-disk write spikes (e.g. SD cards) without stalling the calling thread. If the queue fills up, new records are dropped and a warning with the drop count is logged once the queue has room. The function now returns the `QueueListener`; it is stopped (flushing buffered records) automatically at interpreter exit, or call its `stop()` method for earlier deterministic shutdown.
+### Removed
+#### `log_tools` Submodule
+- Structured logging API: `setup_structured_loggers`, `STRUCTURED_LOG_FORMAT_STR`, and `StructuredJSONMessage`.
+- `python-json-logger` dependency.
+
+---
+
 ## [v1.3.0]
 ### Added
 #### `log_tools` Submodule
