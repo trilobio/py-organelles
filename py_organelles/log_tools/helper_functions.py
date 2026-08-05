@@ -1,11 +1,13 @@
 """Functions to assist in configuring multiple loggers."""
 
+import atexit
 import logging
 import pathlib
+import queue
 import tempfile
-from logging.handlers import RotatingFileHandler
-
-from pythonjsonlogger import jsonlogger
+import threading
+import time
+from logging.handlers import QueueHandler, QueueListener, RotatingFileHandler
 
 from py_organelles.log_tools.formatters import ColorFormatter
 from py_organelles.log_tools.utilities import (
@@ -16,7 +18,6 @@ from py_organelles.log_tools.utilities import (
 
 BASIC_LOG_FORMAT_STR = "%(name)s.%(levelname)s: %(message)s"
 DEBUG_LOG_FORMAT_STR = "%(asctime)s %(levelname)-7s - %(message)s"
-STRUCTURED_LOG_FORMAT_STR = "%(RPC)s %(start_time)s %(end_time)s"
 
 
 def basic_logging_config(
@@ -64,59 +65,98 @@ def basic_logging_config(
             logger.info("Diagnostic logs saved to %s", log_filepath)
 
 
-def setup_structured_loggers(
-    loggers: list[str | logging.Logger],
-    filepath: pathlib.Path,
-    max_bytes: int = int(200e6),
-    backup_count: int = 5,
-    format_str: str = STRUCTURED_LOG_FORMAT_STR,
-) -> None:
-    """Set up provided loggers to save json-structured debug logs to a rotating file.
+class _DropOnFullQueueHandler(QueueHandler):
+    """A QueueHandler that never blocks the logging caller.
 
-    :param loggers: loggers to set up, as Logger object or name of logger
-    :type loggers: list[str | logging.Logger]
-    :param filepath: Passed to logging.RotatingFileHandler. Parent dirs are created if
-        they don't exist
-    :type filepath: pathlib.Path
-    :param max_bytes: Passed to logging.RotatingFileHandler, default is 200 MB
-    :type max_bytes: int
-    :param backup_count: Passed to logging.RotatingFileHandler, default is 5
-    :type backup_count: int
-        filepath (pathlib.Path): file to save structured logs to
-            parent dirs are created in the function if they don't exist
-    :param format_str: passed to jsonlogger.JsonFormatter, defaults to STRUCTURED_LOG_FORMAT_STR;
-        See https://docs.python.org/3/library/logging.html#logrecord-attributes for format info
-    :type format_str: str
+    When the queue is full, records are dropped and counted instead of blocking.
+    Once the queue has room again, a single WARNING record reporting the number
+    of dropped records is enqueued.
     """
-    # Set up json formatting
-    formatter = jsonlogger.JsonFormatter(format_str)
 
-    # Set up rotating file handler
-    # save up to 1 GB of logs that rotate every 200 MB
-    filepath.parent.mkdir(parents=True, exist_ok=True)
-    file_handler = RotatingFileHandler(filepath, maxBytes=max_bytes, backupCount=backup_count)
-    file_handler.setLevel(logging.DEBUG)
-    file_handler.setFormatter(formatter)
+    def __init__(self, log_queue: queue.Queue) -> None:
+        super().__init__(log_queue)
+        # self.queue is typed as a minimal queue protocol without put(); keep a
+        # reference typed as queue.Queue for the non-blocking put calls.
+        self._bounded_queue = log_queue
+        self.dropped_records = 0
 
-    # Attach handlers to loggers
-    for logger in loggers:
-        logger = logging.getLogger(logger) if isinstance(logger, str) else logger
-        logger.addHandler(file_handler)
+    def enqueue(self, record: logging.LogRecord) -> None:
+        # Called with the handler lock held, so dropped_records is thread-safe.
+        try:
+            self._bounded_queue.put(record, block=False)
+        except queue.Full:
+            self.dropped_records += 1
+            return
+        if self.dropped_records:
+            dropped, self.dropped_records = self.dropped_records, 0
+            warning = logging.LogRecord(
+                name=__name__,
+                level=logging.WARNING,
+                pathname=__file__,
+                lineno=0,
+                msg="Log queue overflowed: %d log record(s) dropped",
+                args=(dropped,),
+                exc_info=None,
+            )
+            try:
+                self._bounded_queue.put(warning, block=False)
+            except queue.Full:
+                self.dropped_records += dropped
+
+
+class _BoundedQueueListener(QueueListener):
+    """A QueueListener whose stop() tolerates a full queue and repeated calls.
+
+    The stdlib enqueue_sentinel() uses put_nowait, which raises queue.Full if
+    the bounded queue is saturated at shutdown; retry until the listener thread
+    (which is still draining the queue) frees up room. stop() is also made
+    idempotent so the atexit hook is safe after an explicit stop().
+    """
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self._stop_lock = threading.Lock()
+        self._stopped = False
+
+    def enqueue_sentinel(self) -> None:
+        while True:
+            try:
+                super().enqueue_sentinel()
+                return
+            except queue.Full:
+                time.sleep(0.01)
+
+    def stop(self) -> None:
+        with self._stop_lock:
+            if self._stopped:
+                return
+            self._stopped = True
+        super().stop()
 
 
 def setup_debug_loggers(
-    loggers: list[str | logging.Logger],
+    loggers: LoggerList,
     filepath: pathlib.Path,
     log_level: int = logging.INFO,
     max_bytes: int = int(200e6),
     backup_count: int = 5,
     format_str: str = DEBUG_LOG_FORMAT_STR,
-) -> None:
+    queue_size: int = 65_536,
+) -> QueueListener:
     """Set up provided loggers to save debug logs to a file and stream info logs.
-    Attached to a rotating file handler.
 
-    :param loggers: loggers to set up, as Logger object or name of logger
-    :type loggers: list[str | logging.Logger]
+    Logging calls are non-blocking: records are placed on a bounded in-memory
+    queue and a background thread writes them to a rotating file handler and a
+    stream handler. This buffers slow-disk write spikes (e.g. SD cards) without
+    stalling the calling thread. If the queue fills up, new records are dropped
+    and a warning reporting the drop count is logged once the queue has room.
+
+    The returned QueueListener is stopped (flushing buffered records) at
+    interpreter exit via atexit; call its stop() method for earlier deterministic
+    shutdown.
+
+    :param loggers: logger(s) or name(s) of loggers to set up
+    :type loggers: LoggerList
     :param filepath: Passed to logging.RotatingFileHandler. Parent dirs are created if
         they don't exist
     :type filepath: pathlib.Path
@@ -129,11 +169,15 @@ def setup_debug_loggers(
     :param format_str: passed to logging.Formatter, defaults to DEBUG_LOG_FORMAT_STR;
         See https://docs.python.org/3/library/logging.html#logrecord-attributes for format info
     :type format_str: str
+    :param queue_size: max number of log records buffered in memory before drops occur,
+        defaults to 65,536
+    :type queue_size: int
+    :return: the started QueueListener draining the queue in a background thread
+    :rtype: QueueListener
     """
     formatter = logging.Formatter(format_str)
 
     # Set up rotating file handler
-    # save up to 1 GB of logs that rotate every 200 MB
     filepath.parent.mkdir(parents=True, exist_ok=True)
     file_handler = RotatingFileHandler(filepath, maxBytes=max_bytes, backupCount=backup_count)
     file_handler.setLevel(logging.DEBUG)
@@ -144,8 +188,16 @@ def setup_debug_loggers(
     stream_handler.setLevel(log_level)
     stream_handler.setFormatter(formatter)
 
-    # Attach handlers to loggers
-    for logger in loggers:
-        logger = logging.getLogger(logger) if isinstance(logger, str) else logger
-        logger.addHandler(file_handler)
-        logger.addHandler(stream_handler)
+    # All I/O happens on the listener's background thread; loggers only enqueue.
+    log_queue: queue.Queue = queue.Queue(maxsize=queue_size)
+    listener = _BoundedQueueListener(
+        log_queue, file_handler, stream_handler, respect_handler_level=True
+    )
+    listener.start()
+    atexit.register(listener.stop)
+
+    queue_handler = _DropOnFullQueueHandler(log_queue)
+    for logger in normalize_logger_list(loggers):
+        logger.addHandler(queue_handler)
+
+    return listener
