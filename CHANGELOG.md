@@ -14,6 +14,17 @@ Format: [Semantic Versioning](https://semver.org)
 
 ---
 
+## [v2.0.1]
+
+### Fixed
+- `LoggerList` typing now accepts a `Sequence[str | logging.Logger]` (not just `list[...]`).
+- Pre-commit hook now fails the commit when any formatting, linting, or mypy check fails.
+
+### Added
+- Developer task runner for linting, formatting, testing.
+
+---
+
 ## [v2.0.0]
 ### Changed
 #### `log_tools` Submodule
