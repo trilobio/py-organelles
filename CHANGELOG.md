@@ -3,7 +3,7 @@
 All notable changes to this project will be documented here.
 Format: [Semantic Versioning](https://semver.org)
 
-## [Unreleased]
+## [v2.1.0]
 
 ### Fixed
 - `LoggerList` typing now accepts a `Sequence[str | logging.Logger]` (not just `list[...]`).
@@ -11,6 +11,7 @@ Format: [Semantic Versioning](https://semver.org)
 
 ### Added
 - Developer task runner for linting, formatting, testing.
+- Add "frane" product type
 
 ---
 
