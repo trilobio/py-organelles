@@ -9,6 +9,9 @@ Format: [Semantic Versioning](https://semver.org)
 - `LoggerList` typing now accepts a `Sequence[str | logging.Logger]` (not just `list[...]`).
 - Pre-commit hook now fails the commit when any formatting, linting, or mypy check fails.
 
+### Added
+- Developer task runner for linting, formatting, testing.
+
 ---
 
 ## [v1.3.0]

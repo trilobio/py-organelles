@@ -2,8 +2,7 @@
 set -euo pipefail
 
 # Run linting tools
-uv run ruff format --check
-uv run ruff check
+uv run runner.py format --nofix
 
 # Run type checking
-uv run mypy ./
+uv run runner.py lint
