@@ -6,8 +6,8 @@ Format: [Semantic Versioning](https://semver.org)
 ## [Unreleased]
 
 ### Fixed
-- Log typing changed from `list` to `Sequence`
-- Commit hook now raises errors appropriately.
+- `LoggerList` typing now accepts a `Sequence[str | logging.Logger]` (not just `list[...]`).
+- Pre-commit hook now fails the commit when any formatting, linting, or mypy check fails.
 
 ---
 
