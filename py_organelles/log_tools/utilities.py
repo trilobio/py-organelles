@@ -1,8 +1,9 @@
 """Unsorted logging tools."""
 
 import logging
+from typing import Sequence
 
-LoggerList = str | logging.Logger | list[str | logging.Logger]
+LoggerList = str | logging.Logger | Sequence[str | logging.Logger]
 
 
 def normalize_logger_list(logger_list: LoggerList) -> list[logging.Logger]:

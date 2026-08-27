@@ -6,6 +6,7 @@ Format: [Semantic Versioning](https://semver.org)
 ## [Unreleased]
 
 ### Fixed
+- Log typing changed from `list` to `Sequence`
 - Commit hook now raises errors appropriately.
 
 ---
