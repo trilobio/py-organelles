@@ -24,6 +24,7 @@ class ProductType(enum.IntEnum):
     j3_or_j4_pcb = 3
     tool_pcb = 4
     fts_pcb = 5
+    frame = 6
 
 
 class Factory(enum.IntEnum):
