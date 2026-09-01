@@ -7,7 +7,7 @@ Format: [Semantic Versioning](https://semver.org)
 
 ### Changed
 
-- `basic_logging_config` no longer writes any file to `/tmp` 
+- `basic_logging_config` no longer writes any file to `/tmp` by default
 
 ## [v2.1.0]
 
