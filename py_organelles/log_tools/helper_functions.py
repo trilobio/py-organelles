@@ -4,7 +4,6 @@ import atexit
 import logging
 import pathlib
 import queue
-import tempfile
 import threading
 import time
 from logging.handlers import QueueHandler, QueueListener, RotatingFileHandler
@@ -23,7 +22,6 @@ DEBUG_LOG_FORMAT_STR = "%(asctime)s %(levelname)-7s - %(message)s"
 def basic_logging_config(
     logger_list: LoggerList,
     stream_log_level: int = logging.INFO,
-    log_filepath: pathlib.Path | None = None,
     format_str: str = BASIC_LOG_FORMAT_STR,
 ) -> None:
     """Attach stream_log_level streamhandler and DEBUG filehandler to each named logger.
@@ -35,7 +33,6 @@ def basic_logging_config(
 
     :param logger_list: logger(s) or name(s) of loggers to configure
     :param stream_log_level: logging level for StreamHandler, defaults to logging.INFO
-    :param log_filepath: Passed to logging.FileHandler, defaults to NamedTemporaryFile created in /tmp/logs
     :param format_str: passed to logging.Formatter, defaults to BASIC_LOG_FORMAT_STR;
         See https://docs.python.org/3/library/logging.html#logrecord-attributes for format info
     """
@@ -45,24 +42,10 @@ def basic_logging_config(
     stream_handler.setLevel(stream_log_level)
     stream_handler.setFormatter(stream_formatter)
 
-    if log_filepath is None:
-        folder = pathlib.Path("/tmp/logs")
-        folder.mkdir(exist_ok=True)
-        temp_file = tempfile.NamedTemporaryFile(suffix=".log", delete=False, dir=folder)
-        log_filepath = pathlib.Path(temp_file.name)
-
-    file_formatter = logging.Formatter(format_str)
-    file_handler = logging.FileHandler(log_filepath)
-    file_handler.setLevel(logging.DEBUG)
-    file_handler.setFormatter(file_formatter)
-
     for logger in loggers:
         logger.setLevel(logging.DEBUG)
         if not has_similar_handler(logger, stream_handler):
             logger.addHandler(stream_handler)
-        if not has_similar_handler(logger, file_handler):
-            logger.addHandler(file_handler)
-            logger.info("Diagnostic logs saved to %s", log_filepath)
 
 
 class _DropOnFullQueueHandler(QueueHandler):
