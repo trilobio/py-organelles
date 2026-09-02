@@ -4,7 +4,6 @@ import atexit
 import logging
 import pathlib
 import queue
-import tempfile
 import threading
 import time
 from logging.handlers import QueueHandler, QueueListener, RotatingFileHandler
@@ -45,22 +44,18 @@ def basic_logging_config(
     stream_handler.setLevel(stream_log_level)
     stream_handler.setFormatter(stream_formatter)
 
-    if log_filepath is None:
-        folder = pathlib.Path("/tmp/logs")
-        folder.mkdir(exist_ok=True)
-        temp_file = tempfile.NamedTemporaryFile(suffix=".log", delete=False, dir=folder)
-        log_filepath = pathlib.Path(temp_file.name)
-
-    file_formatter = logging.Formatter(format_str)
-    file_handler = logging.FileHandler(log_filepath)
-    file_handler.setLevel(logging.DEBUG)
-    file_handler.setFormatter(file_formatter)
+    file_handler = None
+    if log_filepath is not None:
+        file_formatter = logging.Formatter(format_str)
+        file_handler = logging.FileHandler(log_filepath)
+        file_handler.setLevel(logging.DEBUG)
+        file_handler.setFormatter(file_formatter)
 
     for logger in loggers:
         logger.setLevel(logging.DEBUG)
         if not has_similar_handler(logger, stream_handler):
             logger.addHandler(stream_handler)
-        if not has_similar_handler(logger, file_handler):
+        if file_handler is not None and not has_similar_handler(logger, file_handler):
             logger.addHandler(file_handler)
             logger.info("Diagnostic logs saved to %s", log_filepath)
 

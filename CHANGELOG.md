@@ -3,6 +3,12 @@
 All notable changes to this project will be documented here.
 Format: [Semantic Versioning](https://semver.org)
 
+## [v2.2.0]
+
+### Changed
+
+- `basic_logging_config` no longer writes any file to `/tmp` by default
+
 ## [v2.1.0]
 
 ### Fixed
