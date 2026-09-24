@@ -35,7 +35,8 @@ class TestTelemetrySource(unittest.TestCase):
         src.publish()
         ring = self.read("estop")["events"]
         self.assertEqual([(e["seq"], e["kind"]) for e in ring], [(2, "released"), (3, "pressed")])
-        self.assertTrue(all(before - 0.001 <= e["mono"] <= time.monotonic() for e in ring))
+        # mono is rounded to the millisecond, so it can be up to half of one either side
+        self.assertTrue(all(before - 0.001 <= e["mono"] <= time.monotonic() + 0.001 for e in ring))
 
     def test_samples_ring_or_latest_values(self) -> None:
         src = TelemetrySource("motor", self.dir, samples=2)
