@@ -17,6 +17,7 @@ from py_organelles.core.serial_number import (
     SerialNumber,
     sanitize_serial_number_input,
 )
+from py_organelles.core.telemetry import TelemetrySource
 from py_organelles.core.transform import (
     euler_angles_from_rotation_matrix,
     rotation_from_euler_angles,
@@ -47,6 +48,7 @@ __all__ = [
     "ProductType",
     "RawSerialNumberListInput",
     "SerialNumber",
+    "TelemetrySource",
     "ValueWithUnits",
     "check_for_file",
     "create_annotation_from_enum",
