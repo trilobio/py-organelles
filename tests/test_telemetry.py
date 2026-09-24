@@ -71,6 +71,37 @@ class TestTelemetrySource(unittest.TestCase):
         seqs = [e["seq"] for e in src.document()["events"]]
         self.assertEqual(sorted(seqs), list(range(1, 501)))
 
+    def test_concurrent_publishes(self) -> None:
+        src = TelemetrySource("busy", self.dir)
+        src.state["blob"] = "x" * 200_000  # a write long enough to overlap
+        errors: list[BaseException] = []
+
+        def publisher() -> None:
+            try:
+                for _ in range(20):
+                    src.publish()
+            except BaseException as e:  # noqa: BLE001 (reported below)
+                errors.append(e)
+
+        threads = [threading.Thread(target=publisher) for _ in range(4)]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
+        self.assertEqual(errors, [])
+        self.assertEqual(self.read("busy")["state"]["blob"], "x" * 200_000)
+        self.assertEqual([p.name for p in self.dir.iterdir()], ["busy.json"])
+
+    def test_stamps_are_the_sources_own_unless_given(self) -> None:
+        src = TelemetrySource("stamps", self.dir, samples=2)
+        with self.assertRaises(ValueError):
+            src.event(seq=7, kind="x")
+        src.event(kind="late", mono=12.3456)  # happened earlier than it is added
+        src.sample(current=0.4, mono=12.5)
+        doc = src.document()
+        self.assertEqual(doc["events"], [{"seq": 1, "mono": 12.346, "kind": "late"}])
+        self.assertEqual(doc["metrics"], [{"mono": 12.5, "current": 0.4}])
+
 
 if __name__ == "__main__":
     unittest.main()

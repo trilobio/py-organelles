@@ -33,9 +33,16 @@ TELEMETRY_DIR = Path("/run/trilo/telemetry")
 WARN_BYTES = 512 * 1024  # the daemon warns above this too: sources are state, keep them small
 
 
+def _stamp(mono: float | None) -> float:
+    """``mono`` as published: the given ``time.monotonic()`` value, or now."""
+    return round(time.monotonic() if mono is None else float(mono), 3)
+
+
 class TelemetrySource:
     """One telemetry source: set `state`, `metrics` and `counters`, add `event`s and
-    `sample`s, then `publish`. Safe to use from several threads."""
+    `sample`s, then `publish`. `event`, `sample` and `publish` are safe from any thread;
+    change the three sections from one thread, or assign each a new dict, since `publish`
+    reads them while it writes."""
 
     def __init__(
         self,
@@ -64,20 +71,25 @@ class TelemetrySource:
         self._samples: deque[dict[str, Any]] | None = deque(maxlen=samples) if samples else None
         self._seq = 0
         self._lock = threading.Lock()
+        self._publishing = threading.Lock()
         self._big = False
 
-    def event(self, **data: Any) -> None:
-        """Add an entry to the events ring, stamped with its sequence number and ``mono``."""
+    def event(self, *, mono: float | None = None, **data: Any) -> None:
+        """Add an entry to the events ring, stamped with its sequence number and ``mono``:
+        now, or the ``time.monotonic()`` of when it happened. ``seq`` is the source's own."""
+        if "seq" in data:
+            raise ValueError(f"{self.name}: an event's seq is numbered by the source")
         with self._lock:
             self._seq += 1
-            self._events.append({"seq": self._seq, "mono": round(time.monotonic(), 3), **data})
+            self._events.append({"seq": self._seq, "mono": _stamp(mono), **data})
 
-    def sample(self, **values: Any) -> None:
-        """Add a metrics sample, stamped with ``mono`` (the source was made with ``samples``)."""
+    def sample(self, *, mono: float | None = None, **values: Any) -> None:
+        """Add a metrics sample, stamped with ``mono``: now, or the ``time.monotonic()`` of
+        when it was taken (the source was made with ``samples``)."""
         if self._samples is None:
             raise ValueError(f"{self.name}: made without a samples ring (samples=0)")
         with self._lock:
-            self._samples.append({"mono": round(time.monotonic(), 3), **values})
+            self._samples.append({"mono": _stamp(mono), **values})
 
     def document(self) -> dict[str, Any]:
         """The source as published: its non-empty sections."""
@@ -92,19 +104,23 @@ class TelemetrySource:
 
     def publish(self) -> None:
         """Write the source whole (a temp file beside it, then a rename). Raises OSError."""
-        text = json.dumps(self.document(), separators=(",", ":"))
-        if len(text) > WARN_BYTES and not self._big:
-            logger.warning(
-                "telemetry source %s is %d bytes: sources are state and should stay small",
-                self.name,
-                len(text),
+        with self._publishing:  # one at a time, so the file left is the newest document
+            text = json.dumps(self.document(), separators=(",", ":"))
+            if len(text) > WARN_BYTES and not self._big:
+                logger.warning(
+                    "telemetry source %s is %d bytes: sources are state and should stay small",
+                    self.name,
+                    len(text),
+                )
+            self._big = len(text) > WARN_BYTES
+            self.path.parent.mkdir(parents=True, exist_ok=True)
+            # this process and thread's own temp name: no other writer of the source shares it
+            tmp = self.path.with_name(
+                f".{self.path.name}.{os.getpid()}.{threading.get_ident()}.tmp"
             )
-        self._big = len(text) > WARN_BYTES
-        self.path.parent.mkdir(parents=True, exist_ok=True)
-        tmp = self.path.with_name(f".{self.path.name}.tmp")
-        try:
-            tmp.write_text(text)
-            os.replace(tmp, self.path)
-        except OSError:
-            tmp.unlink(missing_ok=True)
-            raise
+            try:
+                tmp.write_text(text)
+                os.replace(tmp, self.path)
+            except OSError:
+                tmp.unlink(missing_ok=True)
+                raise
