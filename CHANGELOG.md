@@ -5,6 +5,13 @@ Format: [Semantic Versioning](https://semver.org)
 
 ## [v2.2.0]
 
+### Added
+
+- `TelemetrySource`: publish a robot telemetry source (`/run/trilo/telemetry/<name>.json`,
+  streamed by rpi-image's `trilo-telemetry`): state, an events ring, metrics as latest values
+  or a ring of `mono`-stamped samples (`mono=` stamps an earlier moment), counters; written
+  whole on `publish()`, safe from several threads.
+
 ### Changed
 
 - `basic_logging_config` no longer writes any file to `/tmp` by default
