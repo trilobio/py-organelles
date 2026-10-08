@@ -3,6 +3,30 @@
 All notable changes to this project will be documented here.
 Format: [Semantic Versioning](https://semver.org)
 
+## [v3.0.0]
+
+### Changed
+
+#### `core` Submodule
+- **Breaking.** `BuilderNotFoundError` now takes `(factory_name, factory_key, builder_keys=None,
+  message=None)` and keeps them as attributes, instead of a single pre-formatted message. Callers
+  constructing it by hand must pass the lookup that failed.
+
+### Added
+
+#### `core` Submodule
+- `BuilderExistsError`, raised by both factories when registering over an existing key. Previously
+  a bare `ValueError`.
+
+### Fixed
+
+#### `core` Submodule
+- `MultiBuilderObjectFactory.register_builder` checks the builders registered under the given
+  kind. It read the outer dict, keyed by builder kind, so a duplicate key never matched and
+  silently replaced its builder.
+
+---
+
 ## [v2.2.0]
 
 ### Changed
