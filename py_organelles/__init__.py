@@ -4,6 +4,7 @@ from py_organelles import log_tools
 from py_organelles.core.base import KindBase, KindInterface
 from py_organelles.core.context_managers import modify_attribute
 from py_organelles.core.factory import (
+    BuilderExistsError,
     BuilderNotFoundError,
     FactoryKey,
     MultiBuilderObjectFactory,
@@ -34,6 +35,7 @@ from py_organelles.core.wrapping import (
 
 __all__ = [
     "Q_",
+    "BuilderExistsError",
     "BuilderNotFoundError",
     "Factory",
     "FactoryKey",
