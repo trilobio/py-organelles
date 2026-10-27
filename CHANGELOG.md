@@ -10,29 +10,15 @@ Format: [Semantic Versioning](https://semver.org)
 #### `core` Submodule
 - **Breaking.** `SerialNumber.from_str`, `from_int` and `from_bytes` now build `ProductType`
   and `Factory` members, rather than leaving the raw ints the annotations claimed were enums.
-  A parsed serial number and a constructed one held different types in those two fields and
-  compared equal anyway, both enums being `IntEnum` - so `is` against a member passed every
-  test built from the constructor and was wrong on every serial number read off the wire.
-  A product type or factory naming no member is now refused rather than carried: unknown
-  hardware is a thing to add to the enum. Callers relying on a placeholder such as
-  `from_int(0)`, or on parsing an unprogrammed board's all-ones flash, must change.
 
 ### Added
 
 #### `core` Submodule
-- `Factory.unittest`, which is not a factory: it names a serial number that a test or a
-  mock made up. Its value is 255, the one the field can hold and no real factory will ever
-  be given, so a made-up serial number that escapes into somewhere real is recognisable
-  rather than merely wrong. `generate_serial_numbers` uses it by default.
-- `SerialNumber.from_str` reads a serial number written without its leading zeros:
-  `T1V106F0L0NB` is `T0001V0106F00L00N000B`, as is anything in between. Each field may
-  have anything from one digit up to its full width - a serial number is not more or less
-  itself for how it was typed. `__str__` is unchanged and still writes the full form.
+- `Factory.unittest` property key uses for unittests.
+- `SerialNumber.from_str` can now read a serial number written without its leading zeros:
+  `T1V106F0L0NB` is `T0001V0106F00L00N000B`, as is anything in between.
 - `generate_serial_numbers(product_type, ...)`, yielding well-formed serial numbers that
-  differ from one another, for tests and mocks. The index comes from a counter shared by
-  every generator in the process, so two of them never collide. Reaching for a constant
-  instead makes two mock boards indistinguishable exactly where something is trying to tell
-  them apart.
+  differ from one another, for tests and mocks.
 
 ---
 

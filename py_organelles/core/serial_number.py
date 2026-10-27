@@ -15,8 +15,7 @@ from collections.abc import Iterator
 from typing import Iterable, NamedTuple, Self
 
 #: A serial number, canonical or shortened. Every field accepts anything from one digit up
-#: to its full width, so `T0001V0106F00L00N000B` and `T1V106F0L0NB` both read, and so does
-#: anything in between - a serial number is not more or less itself for how it was typed.
+#: to its full width, so `T0001V0106F00L00N000B` and `T1V106F0L0NB` both read
 _SERIAL_NUMBER_PATTERN = re.compile(
     "T([0-9A-F]{1,4})V([0-9A-F]{1,4})F([0-9A-F]{1,2})L([0-9A-F]{1,2})N([0-9A-F]{1,4})"
 )
@@ -40,9 +39,8 @@ class Factory(enum.IntEnum):
     office = 0
     pcbway = 1
 
-    #: Not a factory: what made this up is a test or a mock. The value is the one the
-    #: field can hold and no real factory ever will, so a serial number that escapes a
-    #: test into somewhere real is recognisable rather than merely wrong.
+    #: Placeholder value to use in unit testing - makes it clear if a test value leaks into
+    #: production.
     unittest = 255
 
 
@@ -111,13 +109,6 @@ class SerialNumber(NamedTuple):
     ) -> Self:
         """Assemble a serial number from the raw fields, converting the two enums.
 
-        The annotations on `product_type` and `factory` say `ProductType` and `Factory`,
-        and `NamedTuple` does not enforce them - so a serial number assembled from raw
-        fields would hold plain ints while one built by the constructor holds members.
-        The two compare equal, both being `IntEnum`, so nothing notices until something
-        compares a field with `is`, which then passes every test built from the
-        constructor and is wrong on every serial number parsed from a string.
-
         :param product_type: What the thing is.
         :param version_major: Hardware major version.
         :param version_minor: Hardware minor version.
@@ -178,9 +169,6 @@ class SerialNumber(NamedTuple):
         if m is None:
             raise ValueError(f"{s} is not a valid serial number")
 
-        # Leading zeros do not change what a hex field is worth, so a shortened serial
-        # number reads as the same numbers the canonical one does. What the widths in the
-        # pattern decide is how many digits a field may have, not how it is read.
         product_type, version, factory, line, index = (int(group, 16) for group in m.groups())
 
         return cls._build(
@@ -271,9 +259,7 @@ def generate_serial_numbers(
     """Yield serial numbers of a given kind, each one different from the last.
 
     For tests and mocks, which need serial numbers that are well-formed and tell each
-    other apart but whose values mean nothing. Reaching for a constant instead gives
-    every mock board the same serial number, which makes two of them indistinguishable
-    exactly where a test is trying to tell them apart.
+    other apart but whose values mean nothing.
 
     The index comes from a counter shared by every generator in the process, so two
     generators - of the same product type or not - never collide, and a caller can take
@@ -286,7 +272,7 @@ def generate_serial_numbers(
         default, so one that escapes into somewhere real is recognisable as made up.
     :param line: Which line made them.
 
-    :return: An endless stream of serial numbers differing only in index. The index is 16
+    :return: A stream of serial numbers differing only in index. The index is 16
         bits wide, so one process must not take more than 65535 of them.
     """
     for index in _generated_indices:
