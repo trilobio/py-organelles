@@ -1,6 +1,6 @@
 """py_organelles API."""
 
-from py_organelles import log_tools
+from py_organelles import log_tools, schema_versioning
 from py_organelles.core.base import KindBase, KindInterface
 from py_organelles.core.context_managers import modify_attribute
 from py_organelles.core.factory import (
@@ -60,6 +60,7 @@ __all__ = [
     "prompt_yes_no",
     "rotation_from_euler_angles",
     "sanitize_serial_number_input",
+    "schema_versioning",
     "transform_from_euler_angles",
     "wrap_object_methods",
 ]

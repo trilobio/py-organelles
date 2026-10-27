@@ -3,6 +3,29 @@
 All notable changes to this project will be documented here.
 Format: [Semantic Versioning](https://semver.org)
 
+## [Unreleased]
+
+### Added
+
+#### `schema_versioning` Submodule
+- Schema-versioned pydantic models, and migration of their serialized data between schema
+  versions. Moved from `tcode-api`, so that other projects (e.g. `config-db`) can share it.
+  - `BaseSchemaVersionedModel`: a `schema_version` field and `read()` / `write()`, with no
+    `model_config`, so that each project mixes in its own configured base model.
+  - `SchemaRegistry` and `MigrationRegistry`, raising `core`'s `BuilderNotFoundError` and
+    `BuilderExistsError`. Each project keeps its own instances; there are no module-level
+    registries.
+  - `CompatContext` and `APIHistoryLog`, and the functions that take one: `load_api_object`,
+    `migrate_data_to_latest`, `migrate_data_to_version`, and `resolve_api_profile`.
+  - `unversioned_is_v1` on `load_api_object`, `migrate_data_to_latest`, and
+    `migrate_data_to_version`: whether data with no `schema_version` is version 1 of its schema,
+    or an `InvalidDataError`. In `load_api_object`, a version looked up from `api_version` takes
+    precedence. A nested schema with no `schema_version` is version 1 if set, and otherwise left
+    as is.
+- `packaging` dependency.
+
+---
+
 ## [v3.0.0]
 
 ### Changed
