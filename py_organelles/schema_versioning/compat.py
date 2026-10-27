@@ -175,21 +175,21 @@ class DeprecatedSchemaError(Exception):
 
 def migrate_data_to_latest(
     data: RawData,
-    context: CompatContext,
-    *,
     schema_name: str | None = None,
     schema_version: int | None = None,
+    *,
+    context: CompatContext,
     recurse: bool = True,
     unversioned_is_v1: bool = False,
 ) -> RawData:
     """Migrate a given json blob to the latest version of its schema.
 
     :param data: The json blob to migrate.
-    :param context: The targeted compatibility context.
     :param schema_name: The name of the schema to migrate. If not provided, will attempt to infer
         from the 'type' key in the data.
     :param schema_version: The version of the schema to migrate. If not provided, will attempt to
         infer from the 'schema_version' key in the data.
+    :param context: The targeted compatibility context.
     :param recurse: Whether to migrate schemas nested inside this schema. Defaults to True.
     :param unversioned_is_v1: Whether data with no schema version is version 1 of its schema. If
         False, such data raises ``InvalidDataError``. Defaults to False.
@@ -203,9 +203,9 @@ def migrate_data_to_latest(
     return migrate_data_to_version(
         data,
         None,
-        context,
         schema_name=schema_name,
         schema_version=schema_version,
+        context=context,
         recurse=recurse,
         unversioned_is_v1=unversioned_is_v1,
     )
@@ -214,10 +214,10 @@ def migrate_data_to_latest(
 def migrate_data_to_version(
     data: RawData,
     target_version: int | None,
-    context: CompatContext,
-    *,
     schema_name: str | None = None,
     schema_version: int | None = None,
+    *,
+    context: CompatContext,
     recurse: bool | None = None,
     unversioned_is_v1: bool = False,
 ) -> RawData:
@@ -226,19 +226,18 @@ def migrate_data_to_version(
     :param data: The json blob to migrate.
     :param target_version: The target version of the schema to migrate to. If None, will migrate
         to the latest version.
-    :param context: The targeted compatibility context.
     :param schema_name: The name of the schema to migrate. If not provided, will attempt to infer
         from the 'type' key in the data.
     :param schema_version: The version of the schema to migrate. If not provided, will attempt to
         infer from the 'schema_version' key in the data.
+    :param context: The targeted compatibility context.
     :param recurse: Whether to migrate schemas nested inside this schema. Only possible when
         we're migrating to the newest version (target_version is None). Defaults to None, which sets
         it to True iff target_version is None.
-    :param unversioned_is_v1: Whether data with no schema version is version 1 of its schema. If
+    :param unversioned_is_v1: Whether to assume that data with no schema version is version 1. If
         False, such data raises ``InvalidDataError``. Defaults to False.
 
     :returns: The migrated json blob, updated to match the specified version of the schema.
-        Its 'schema_version' is always set, even if no migrators were found for the given schema.
 
     :raises InvalidDataError: If any of the following are true:
         * the schema name or version cannot be inferred from the data and not provided as an
@@ -270,8 +269,8 @@ def migrate_data_to_version(
                     data=data,
                 )
             schema_version = 1
-    # Record the version we're migrating from, in case it didn't come from the data.
-    data = {**data, "schema_version": schema_version}
+            # Add the newly-assumed schema version.
+            data = {**data, "schema_version": schema_version}
 
     # Validate target version against current version
     if target_version is not None:
@@ -354,7 +353,7 @@ def _migrate_nested_schemas_to_latest(
     ):
         data = migrate_data_to_latest(
             data,
-            context,
+            context=context,
             recurse=False,  # We're recursing out here, don't need to do it twice
             unversioned_is_v1=unversioned_is_v1,
         )
@@ -419,9 +418,9 @@ def resolve_api_profile(
 
 def load_api_object(
     data: RawData,
-    context: CompatContext,
-    *,
     api_version: APIVersion | None = None,
+    *,
+    context: CompatContext,
     unversioned_is_v1: bool = False,
 ) -> BaseSchemaVersionedModel:
     """Given a data blob and the API version it corresponds to, return an instance of the most modern
@@ -432,9 +431,9 @@ def load_api_object(
     unversioned_is_v1 == True) or raise an error (if unversioned_is_v1 == False).
 
     :param data: The mapping of data to load.
-    :param context: The targeted compatibility context.
     :param api_version: The API version to resolve the schema profile against for loading.
         If not given, uses `type` and `schema_version` fields in the data to resolve the schema.
+    :param context: The targeted compatibility context.
     :param unversioned_is_v1: Whether data with no schema version is version 1 of its schema. If
         False, such data raises ``InvalidDataError``. Defaults to False.
 
@@ -484,9 +483,9 @@ def load_api_object(
     # `migrate_data_to_latest` follows renames and rewrites the "type" key to the final name.
     data = migrate_data_to_latest(
         data,
-        context,
         schema_name=incoming_name,
         schema_version=schema_version,
+        context=context,
         unversioned_is_v1=unversioned_is_v1,
     )
     new_name = data["type"]
@@ -565,12 +564,21 @@ def _build_migrator_chain(
 
         # Check for renames in the API history log and update the current_name accordingly
         continue_traversing = False  # Set back to true if we find a rename
+        names_seen_so_far = {
+            current_name
+        }  # To avoid infinite loop if A is renamed to B is renamed to A
         for api_version_str in sorted(context.api_history_log.migrations, key=Version):
             for schema_name in context.api_history_log.migrations[api_version_str]:
                 if schema_name == current_name:
                     new_name = context.api_history_log.migrations[api_version_str][schema_name]
                     if new_name is None:
                         raise DeprecatedSchemaError(type=schema_name)
+
+                    if new_name in names_seen_so_far:
+                        raise RuntimeError(
+                            f"Schema renamed to {new_name}, which it was already named. Infinite loop?"
+                        )
+                    names_seen_so_far.add(new_name)
 
                     current_name = new_name
                     _logger.debug(

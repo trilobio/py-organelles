@@ -1224,27 +1224,27 @@ class TestUnversionedData(unittest.TestCase):
                 self.subTest(target_version=target_version),
                 self.assertRaises(InvalidDataError),
             ):
-                migrate_data_to_version({"type": "Teacup"}, target_version, self.context)
+                migrate_data_to_version({"type": "Teacup"}, target_version, context=self.context)
 
     def test_migrate_as_v1(self) -> None:
         with self.subTest(target_version=None):
             migrated = migrate_data_to_latest(
-                {"type": "Teacup"}, self.context, unversioned_is_v1=True
+                {"type": "Teacup"}, context=self.context, unversioned_is_v1=True
             )
             self.assertEqual(migrated, MIGRATED_TEACUP)
 
         with self.subTest(target_version=2):
             migrated = migrate_data_to_version(
-                {"type": "Teacup"}, 2, self.context, unversioned_is_v1=True
+                {"type": "Teacup"}, 2, context=self.context, unversioned_is_v1=True
             )
             self.assertEqual(migrated["schema_version"], 2)
 
     def test_load_raises_by_default(self) -> None:
         with self.assertRaises(InvalidDataError):
-            load_api_object({"type": "Teacup"}, self.context)
+            load_api_object({"type": "Teacup"}, context=self.context)
 
     def test_load_as_v1(self) -> None:
-        inst = load_api_object({"type": "Teacup"}, self.context, unversioned_is_v1=True)
+        inst = load_api_object({"type": "Teacup"}, context=self.context, unversioned_is_v1=True)
         self.assertEqual(inst, TeacupV3(was_migrated=True))
 
     def test_api_version_takes_precedence(self) -> None:
@@ -1253,7 +1253,7 @@ class TestUnversionedData(unittest.TestCase):
             with self.subTest(unversioned_is_v1=unversioned_is_v1):
                 inst = load_api_object(
                     {"type": "Teacup"},
-                    self.context,
+                    context=self.context,
                     api_version="v0.3.0",
                     unversioned_is_v1=unversioned_is_v1,
                 )
@@ -1263,7 +1263,9 @@ class TestUnversionedData(unittest.TestCase):
         """With the flag, a nested schema with no `schema_version` is migrated from v1, rather
         than left alone."""
         migrated = migrate_data_to_latest(
-            {"type": "Tray", "mug": {"type": "Teacup"}}, self.context, unversioned_is_v1=True
+            {"type": "Tray", "mug": {"type": "Teacup"}},
+            context=self.context,
+            unversioned_is_v1=True,
         )
         self.assertEqual(migrated["schema_version"], 2)
         self.assertEqual(migrated["cup"], MIGRATED_TEACUP)
@@ -1283,7 +1285,9 @@ class TestUnversionedData(unittest.TestCase):
                 increments={"v0.1.0": {"Saucer": 1}},
             ),
         )
-        migrated = migrate_data_to_latest({"type": "Saucer"}, context, unversioned_is_v1=True)
+        migrated = migrate_data_to_latest(
+            {"type": "Saucer"}, context=context, unversioned_is_v1=True
+        )
         self.assertEqual(migrated, {"type": "Saucer", "schema_version": 1})
-        inst = load_api_object({"type": "Saucer"}, context, unversioned_is_v1=True)
+        inst = load_api_object({"type": "Saucer"}, context=context, unversioned_is_v1=True)
         self.assertEqual(inst, SaucerV1(schema_version=1))
