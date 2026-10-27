@@ -102,6 +102,52 @@ class TestSerialNumberEnums(unittest.TestCase):
             SerialNumber.from_str("T0006V0106FFFL00N0001")
 
 
+class TestShortenedSerialNumbers(unittest.TestCase):
+    """A serial number written without its leading zeros is the same serial number."""
+
+    CANONICAL = "T0001V0106F00L00N000B"
+    SHORT = "T1V106F0L0NB"
+
+    def test_the_short_form_reads_as_the_long_one(self) -> None:
+        self.assertEqual(SerialNumber.from_str(self.SHORT), SerialNumber.from_str(self.CANONICAL))
+
+    def test_the_version_halves_survive_being_shortened(self) -> None:
+        """`V0106` is major 1 minor 6, and `V106` drops a zero from the pair.
+
+        It is one field when written down and two when read, so a short version has to be
+        right-aligned into four digits before it is split - otherwise `V106` reads as
+        major 10, minor 6.
+        """
+        serial_number = SerialNumber.from_str(self.SHORT)
+
+        self.assertEqual(serial_number.version_major, 1)
+        self.assertEqual(serial_number.version_minor, 6)
+
+    def test_anything_between_the_two_forms_reads_too(self) -> None:
+        """A serial number is not more or less itself for how many zeros were typed."""
+        for written in ("T01V0106F0L00N00B", "T0001V106F00L0N000B", "T1V0106F00L00N0B"):
+            with self.subTest(written=written):
+                self.assertEqual(
+                    SerialNumber.from_str(written), SerialNumber.from_str(self.CANONICAL)
+                )
+
+    def test_it_still_prints_in_full(self) -> None:
+        """Reading the short form is a convenience; the written form does not change."""
+        self.assertEqual(str(SerialNumber.from_str(self.SHORT)), self.CANONICAL)
+
+    def test_a_field_wider_than_it_should_be_is_refused(self) -> None:
+        """Shortening relaxes how few digits a field may have, not how many."""
+        for written in ("T00001V0106F00L00N000B", "T0001V00106F00L00N000B"):
+            with self.subTest(written=written):
+                with self.assertRaises(ValueError):
+                    SerialNumber.from_str(written)
+
+    def test_an_empty_field_is_refused(self) -> None:
+        """Every field still has to be there, however short."""
+        with self.assertRaises(ValueError):
+            SerialNumber.from_str("TV106F0L0NB")
+
+
 class TestGenerateSerialNumbers(unittest.TestCase):
     """Serial numbers for tests and mocks: well-formed, and all different."""
 

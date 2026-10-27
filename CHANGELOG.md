@@ -20,6 +20,10 @@ Format: [Semantic Versioning](https://semver.org)
 ### Added
 
 #### `core` Submodule
+- `SerialNumber.from_str` reads a serial number written without its leading zeros:
+  `T1V106F0L0NB` is `T0001V0106F00L00N000B`, as is anything in between. Each field may
+  have anything from one digit up to its full width - a serial number is not more or less
+  itself for how it was typed. `__str__` is unchanged and still writes the full form.
 - `generate_serial_numbers(product_type, ...)`, yielding well-formed serial numbers that
   differ from one another, for tests and mocks. The index comes from a counter shared by
   every generator in the process, so two of them never collide. Reaching for a constant

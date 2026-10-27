@@ -14,6 +14,13 @@ import struct
 from collections.abc import Iterator
 from typing import Iterable, NamedTuple, Self
 
+#: A serial number, canonical or shortened. Every field accepts anything from one digit up
+#: to its full width, so `T0001V0106F00L00N000B` and `T1V106F0L0NB` both read, and so does
+#: anything in between - a serial number is not more or less itself for how it was typed.
+_SERIAL_NUMBER_PATTERN = re.compile(
+    "T([0-9A-F]{1,4})V([0-9A-F]{1,4})F([0-9A-F]{1,2})L([0-9A-F]{1,2})N([0-9A-F]{1,4})"
+)
+
 
 def _byte_length(i: int) -> int:
     """Calculate minimum bytecount required to represent integer value."""
@@ -162,15 +169,27 @@ class SerialNumber(NamedTuple):
 
         :return: The serial number.
         """
-        m = re.fullmatch(
-            "T([0-9A-F]{4})V([0-9A-F]{2})([0-9A-F]{2})F([0-9A-F]{2})L([0-9A-F]{2})N([0-9A-F]{4})",
-            s,
-        )
-
+        m = _SERIAL_NUMBER_PATTERN.fullmatch(s)
         if m is None:
             raise ValueError(f"{s} is not a valid serial number")
 
-        return cls._build(*(int(group, 16) for group in m.groups()))
+        # Leading zeros do not change what a hex field is worth, so a shortened serial
+        # number reads as the same numbers the canonical one does. What the widths in the
+        # pattern decide is how many digits a field may have, not how it is read.
+        product_type, version, factory, line, index = (int(group, 16) for group in m.groups())
+
+        return cls._build(
+            product_type=product_type,
+            # The version is one field when it is written down and two when it is read:
+            # `V0106` is major 1, minor 6, and shortening it to `V106` drops a zero from
+            # the pair rather than from either half - which is why it is split by
+            # arithmetic on the whole field rather than by slicing the string.
+            version_major=version >> 8,
+            version_minor=version & 0xFF,
+            factory=factory,
+            line=line,
+            index=index,
+        )
 
     def __int__(self):
         return self.pack()
