@@ -17,6 +17,9 @@ Format: [Semantic Versioning](https://semver.org)
 ### Added
 
 #### `core` Submodule
+- `SerialNumber` can be a pydantic field. It travels as the string it is written as, in both
+  directions and in a JSON schema, rather than as the six fields pydantic would otherwise
+  see - which is neither what anything reads nor something `from_str` could read back.
 - `Factory.unittest` property key uses for unittests.
 - `SerialNumber.from_str` can now read a serial number written without its leading zeros:
   `T1V106F0L0NB` is `T0001V0106F00L00N000B`, as is anything in between.
