@@ -9,8 +9,8 @@ from pydantic import BaseModel
 class BaseSchemaVersionedModel(BaseModel, ABC):
     """pydantic BaseModel with a ``schema_version`` field.
 
-    Deliberately sets no ``model_config``, so that each project can mix in its own configured
-    base model, e.g. ``class MyBase(MyConfiguredModel, BaseSchemaVersionedModel)``.
+    Sets no ``model_config``, so that each project can mix in its own configured base model, e.g.
+    ``class MyBase(MyConfiguredModel, BaseSchemaVersionedModel)``.
 
     :note: ``read()`` and ``write()`` methods are exposed on this class because
         only schema-versioned models should be read from and written to JSON blobs.

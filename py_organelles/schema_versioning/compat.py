@@ -1,17 +1,4 @@
-"""Code to manage compatibility between different versions of an API's schemas.
-
-Serialized schema data is a mapping that names its schema under ``"type"`` and its version of that
-schema under ``"schema_version"``. A mapping is an instance of a schema iff its ``"type"`` is in
-:meth:`CompatContext.known_schema_names`.
-
-Contains:
-    * ``CompatContext``, which gathers everything one API needs to migrate its data: an
-      ``APIHistoryLog`` mapping each API semantic version (e.g. 'v1.35.1') to individual schema
-      versions (e.g. SEND_WEBHOOK -> v2, WAIT -> v3), and registries of migrators and builders.
-    * ``migrate_data_to_latest`` / ``migrate_data_to_version``, to migrate raw data.
-    * ``load_api_object``, to migrate raw data and build the latest schema from it.
-    * ``resolve_api_profile``, to navigate the ``APIHistoryLog``.
-"""
+"""Code to manage compatibility between different versions of an API's schemas."""
 
 import collections.abc
 import dataclasses
@@ -441,7 +428,8 @@ def load_api_object(
         schema that the data can be migrated to.
 
     The data's schema version is its `schema_version` field. If that's absent, the version is
-    looked up using `api_version`, if given. Failing both, `unversioned_is_v1` decides.
+    looked up using `api_version`, if given. Failing both, we assume it's version 1 (if
+    unversioned_is_v1 == True) or raise an error (if unversioned_is_v1 == False).
 
     :param data: The mapping of data to load.
     :param context: The targeted compatibility context.
