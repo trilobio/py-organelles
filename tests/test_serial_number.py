@@ -99,7 +99,7 @@ class TestSerialNumberEnums(unittest.TestCase):
 
     def test_a_factory_that_names_nothing_is_refused(self) -> None:
         with self.assertRaises(ValueError):
-            SerialNumber.from_str("T0006V0106FFFL00N0001")
+            SerialNumber.from_str("T0006V0106F09L00N0001")
 
 
 class TestShortenedSerialNumbers(unittest.TestCase):
@@ -148,6 +148,24 @@ class TestShortenedSerialNumbers(unittest.TestCase):
             SerialNumber.from_str("TV106F0L0NB")
 
 
+class TestUnittestFactory(unittest.TestCase):
+    """`Factory.unittest` names what made a serial number up."""
+
+    def test_it_is_the_value_no_real_factory_will_take(self) -> None:
+        """A made-up serial number that escapes somewhere real should be recognisable.
+
+        255 fills the field, which is one byte wide, so there is nothing above it for a
+        real factory to be given later.
+        """
+        self.assertEqual(Factory.unittest, 0xFF)
+        self.assertNotIn(0xFF, {Factory.office, Factory.pcbway})
+
+    def test_a_serial_number_made_at_it_round_trips(self) -> None:
+        serial_number = SerialNumber(ProductType.trilobot, 1, 2, Factory.unittest, 0, 1)
+
+        self.assertIs(SerialNumber.from_str(str(serial_number)).factory, Factory.unittest)
+
+
 class TestGenerateSerialNumbers(unittest.TestCase):
     """Serial numbers for tests and mocks: well-formed, and all different."""
 
@@ -165,6 +183,10 @@ class TestGenerateSerialNumbers(unittest.TestCase):
         taken = [next(robots), next(frames), next(robots), next(frames)]
 
         self.assertEqual(len(set(taken)), len(taken))
+
+    def test_what_is_generated_is_marked_as_made_up(self) -> None:
+        """Nothing real is made at `Factory.unittest`, so a leak is recognisable."""
+        self.assertIs(next(generate_serial_numbers(ProductType.trilobot)).factory, Factory.unittest)
 
     def test_what_is_generated_says_what_it_was_asked_for(self) -> None:
         serial_number = next(

@@ -20,6 +20,10 @@ Format: [Semantic Versioning](https://semver.org)
 ### Added
 
 #### `core` Submodule
+- `Factory.unittest`, which is not a factory: it names a serial number that a test or a
+  mock made up. Its value is 255, the one the field can hold and no real factory will ever
+  be given, so a made-up serial number that escapes into somewhere real is recognisable
+  rather than merely wrong. `generate_serial_numbers` uses it by default.
 - `SerialNumber.from_str` reads a serial number written without its leading zeros:
   `T1V106F0L0NB` is `T0001V0106F00L00N000B`, as is anything in between. Each field may
   have anything from one digit up to its full width - a serial number is not more or less

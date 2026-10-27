@@ -40,6 +40,11 @@ class Factory(enum.IntEnum):
     office = 0
     pcbway = 1
 
+    #: Not a factory: what made this up is a test or a mock. The value is the one the
+    #: field can hold and no real factory ever will, so a serial number that escapes a
+    #: test into somewhere real is recognisable rather than merely wrong.
+    unittest = 255
+
 
 _serial_number_struct_format_str: str = "<Q"  # little-endian unsigned long long
 
@@ -260,7 +265,7 @@ def generate_serial_numbers(
     product_type: ProductType,
     version_major: int = 1,
     version_minor: int = 0,
-    factory: Factory = Factory.office,
+    factory: Factory = Factory.unittest,
     line: int = 0,
 ) -> Iterator[SerialNumber]:
     """Yield serial numbers of a given kind, each one different from the last.
@@ -277,7 +282,8 @@ def generate_serial_numbers(
     :param product_type: What the generated serial numbers say they are.
     :param version_major: Hardware major version.
     :param version_minor: Hardware minor version.
-    :param factory: Where the generated serial numbers say they were made.
+    :param factory: Where the generated serial numbers say they were made. `unittest` by
+        default, so one that escapes into somewhere real is recognisable as made up.
     :param line: Which line made them.
 
     :return: An endless stream of serial numbers differing only in index. The index is 16
