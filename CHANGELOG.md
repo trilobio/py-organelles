@@ -3,13 +3,16 @@
 All notable changes to this project will be documented here.
 Format: [Semantic Versioning](https://semver.org)
 
-## [Unreleased]
+## [v4.0.0]
 
 ### Fixed
 
 #### `core` Submodule
 - **Breaking.** `SerialNumber.from_str`, `from_int` and `from_bytes` now build `ProductType`
   and `Factory` members, rather than leaving the raw ints the annotations claimed were enums.
+  A product type or factory naming no member is therefore refused rather than carried, so
+  values that parsed before - `from_int(0)`, a bare `factory=255`, an unprogrammed board's
+  all-ones flash - now raise.
 
 ### Added
 
