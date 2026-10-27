@@ -12,7 +12,10 @@ import itertools
 import re
 import struct
 from collections.abc import Iterator
-from typing import Iterable, NamedTuple, Self
+from typing import Any, Iterable, NamedTuple, Self
+
+from pydantic import GetCoreSchemaHandler
+from pydantic_core import core_schema
 
 #: A serial number, canonical or shortened. Every field accepts anything from one digit up
 #: to its full width, so `T0001V0106F00L00N000B` and `T1V106F0L0NB` both read
@@ -182,6 +185,52 @@ class SerialNumber(NamedTuple):
             factory=factory,
             line=line,
             index=index,
+        )
+
+    @classmethod
+    def _validate(cls, value: Any) -> Self:
+        """Read a serial number from whatever pydantic was handed.
+
+        :param value: A serial number, or the string one is written as.
+
+        :raises ValueError: If it is neither.
+
+        :return: The serial number.
+        """
+        if isinstance(value, cls):
+            return value
+
+        if isinstance(value, str):
+            return cls.from_str(value)
+
+        raise ValueError(
+            f"expected a serial number or the string one is written as, got {type(value).__name__}"
+        )
+
+    @classmethod
+    def __get_pydantic_core_schema__(
+        cls, source_type: Any, handler: GetCoreSchemaHandler
+    ) -> core_schema.CoreSchema:
+        """Tell pydantic that a serial number travels as the string it is written as.
+
+        Without this, pydantic sees the `NamedTuple` and carries a serial number as its
+        six fields positionally - `[6, 1, 6, 0, 0, 1]` - which is neither what anything
+        reads nor something `from_str` can read back. Declaring the schema here means
+        every model that holds one agrees, rather than each one carrying its own
+        validator.
+
+        :param source_type: The annotated type, which is this class.
+        :param handler: Pydantic's schema handler, unused: nothing is delegated.
+
+        :return: A schema that validates from a serial number or its string, serializes
+            to that string, and describes itself as a string in a JSON schema.
+        """
+        return core_schema.no_info_plain_validator_function(
+            cls._validate,
+            serialization=core_schema.plain_serializer_function_ser_schema(
+                str, return_schema=core_schema.str_schema()
+            ),
+            json_schema_input_schema=core_schema.str_schema(),
         )
 
     def __int__(self):

@@ -2,6 +2,8 @@
 
 import unittest
 
+import pydantic
+
 from py_organelles import (
     Factory,
     ProductType,
@@ -201,6 +203,64 @@ class TestGenerateSerialNumbers(unittest.TestCase):
         serial_number = next(generate_serial_numbers(ProductType.tool_pcb))
 
         self.assertEqual(SerialNumber.from_str(str(serial_number)), serial_number)
+
+
+class TestSerialNumberInPydanticModels(unittest.TestCase):
+    """A serial number travels as the string it is written as."""
+
+    class Model(pydantic.BaseModel):
+        """A model holding one, configured as the repos that will hold them are."""
+
+        model_config = pydantic.ConfigDict(strict=True, extra="ignore")
+
+        serial_number: SerialNumber
+
+    def setUp(self) -> None:
+        self.serial_number = SerialNumber(ProductType.frame, 1, 6, Factory.office, 0, 1)
+        self.model = self.Model(serial_number=self.serial_number)
+
+    def test_it_serializes_as_its_string(self) -> None:
+        """Not as the six fields it is made of, which is what pydantic does unasked."""
+        self.assertEqual(
+            self.model.model_dump_json(), f'{{"serial_number":"{self.serial_number}"}}'
+        )
+
+    def test_it_validates_from_its_string(self) -> None:
+        parsed = self.Model.model_validate_json(f'{{"serial_number": "{self.serial_number}"}}')
+
+        self.assertEqual(parsed.serial_number, self.serial_number)
+
+    def test_it_validates_from_a_shortened_string(self) -> None:
+        """Whatever `from_str` reads, a model reads."""
+        parsed = self.Model.model_validate({"serial_number": "T6V106F0L0N1"})
+
+        self.assertEqual(parsed.serial_number, self.serial_number)
+
+    def test_it_round_trips(self) -> None:
+        reread = self.Model.model_validate_json(self.model.model_dump_json())
+
+        self.assertEqual(reread.serial_number, self.serial_number)
+        self.assertIsInstance(reread.serial_number, SerialNumber)
+
+    def test_it_describes_itself_as_a_string(self) -> None:
+        """A plain validator has no JSON schema of its own, and anything generating
+        OpenAPI from a model holding one would fail to start without this."""
+        field = self.Model.model_json_schema()["properties"]["serial_number"]
+
+        self.assertEqual(field["type"], "string")
+
+    def test_what_is_not_a_serial_number_is_refused(self) -> None:
+        for value in (42, None, ["T0006V0106F00L00N0001"]):
+            with self.subTest(value=value):
+                with self.assertRaises(pydantic.ValidationError):
+                    self.Model.model_validate({"serial_number": value})
+
+    def test_a_string_that_is_not_a_serial_number_is_refused(self) -> None:
+        """Including one whose product type names nothing, which `from_str` refuses."""
+        for value in ("nonsense", "T0000V0106F00L00N0001"):
+            with self.subTest(value=value):
+                with self.assertRaises(pydantic.ValidationError):
+                    self.Model.model_validate({"serial_number": value})
 
 
 class TestSanitizeSerialNumberInput(unittest.TestCase):
