@@ -3,6 +3,31 @@
 All notable changes to this project will be documented here.
 Format: [Semantic Versioning](https://semver.org)
 
+## [v4.0.0]
+
+### Fixed
+
+#### `core` Submodule
+- **Breaking.** `SerialNumber.from_str`, `from_int` and `from_bytes` now build `ProductType`
+  and `Factory` members, rather than leaving the raw ints the annotations claimed were enums.
+  A product type or factory naming no member is therefore refused rather than carried, so
+  values that parsed before - `from_int(0)`, a bare `factory=255`, an unprogrammed board's
+  all-ones flash - now raise.
+
+### Added
+
+#### `core` Submodule
+- `SerialNumber` can be a pydantic field. It travels as the string it is written as, in both
+  directions and in a JSON schema, rather than as the six fields pydantic would otherwise
+  see - which is neither what anything reads nor something `from_str` could read back.
+- `Factory.unittest` property key uses for unittests.
+- `SerialNumber.from_str` can now read a serial number written without its leading zeros:
+  `T1V106F0L0NB` is `T0001V0106F00L00N000B`, as is anything in between.
+- `generate_serial_numbers(product_type, ...)`, yielding well-formed serial numbers that
+  differ from one another, for tests and mocks.
+
+---
+
 ## [v3.0.0]
 
 ### Changed

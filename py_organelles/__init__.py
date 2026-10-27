@@ -16,6 +16,7 @@ from py_organelles.core.serial_number import (
     ProductType,
     RawSerialNumberListInput,
     SerialNumber,
+    generate_serial_numbers,
     sanitize_serial_number_input,
 )
 from py_organelles.core.transform import (
@@ -53,6 +54,7 @@ __all__ = [
     "check_for_file",
     "create_annotation_from_enum",
     "euler_angles_from_rotation_matrix",
+    "generate_serial_numbers",
     "log_tools",
     "method_wrapping_metaclass_factory",
     "modify_attribute",

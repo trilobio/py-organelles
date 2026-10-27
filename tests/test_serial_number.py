@@ -2,7 +2,15 @@
 
 import unittest
 
-from py_organelles import SerialNumber, sanitize_serial_number_input
+import pydantic
+
+from py_organelles import (
+    Factory,
+    ProductType,
+    SerialNumber,
+    generate_serial_numbers,
+    sanitize_serial_number_input,
+)
 
 
 class TestSerialNumber(unittest.TestCase):
@@ -42,14 +50,217 @@ class TestSerialNumber(unittest.TestCase):
         with self.assertRaises(ValueError):
             SerialNumber.from_bytes(b"\x00\x01\x02\x03\x04\x05\x06\x07\x00")
 
-        b = b"\x00\x01\x02\x00\x00\x00\x0a\x00"
-        SerialNumber.from_bytes(b)
+        b = b"\x0b\x00\x00\x00\x03\x01\x01\x00"
+        self.assertEqual(
+            SerialNumber.from_bytes(b),
+            SerialNumber(ProductType.trilobot, 1, 3, Factory.office, 0, 11),
+        )
+
+    def test_from_bytes_rejects_a_product_type_that_names_nothing(self) -> None:
+        """Product type 10 is no member, and a serial number carrying one is not one."""
+        with self.assertRaises(ValueError):
+            SerialNumber.from_bytes(b"\x00\x01\x02\x00\x00\x00\x0a\x00")
 
     def test_to_bytes(self) -> None:
         """Test SerialNumber.to_bytes method."""
-        b = b"\xf4\xa1\x62\xd0\x91\x00\x0a\x00"
+        b = b"\x0b\x00\x00\x00\x03\x01\x01\x00"
         sn = SerialNumber.from_bytes(b)
         self.assertEqual(b, sn.to_bytes())
+
+
+class TestSerialNumberEnums(unittest.TestCase):
+    """A serial number holds enum members however it was built."""
+
+    def test_a_parsed_serial_number_holds_members_like_a_constructed_one(self) -> None:
+        """`is` against a member has to work, or it is a trap.
+
+        `ProductType` is an `IntEnum`, so a plain int compares equal to a member and
+        nothing downstream notices the difference - until something uses `is`, which then
+        passes every test built from the constructor and is wrong on every serial number
+        read off the wire.
+        """
+        built = SerialNumber(ProductType.frame, 1, 6, Factory.office, 0, 1)
+
+        for name, parsed in (
+            ("from_str", SerialNumber.from_str(str(built))),
+            ("from_int", SerialNumber.from_int(built.pack())),
+            ("from_bytes", SerialNumber.from_bytes(built.to_bytes())),
+        ):
+            with self.subTest(constructor=name):
+                self.assertIs(parsed.product_type, ProductType.frame)
+                self.assertIs(parsed.factory, Factory.office)
+                self.assertEqual(parsed, built)
+
+    def test_a_product_type_that_names_nothing_is_refused(self) -> None:
+        """Unknown hardware is a thing to add to the enum, not to carry as a number."""
+        with self.assertRaises(ValueError):
+            SerialNumber.from_str("T0000V0106F00L00N0001")
+
+        with self.assertRaises(ValueError):
+            SerialNumber.from_int(0xFFFFFFFFFFFFFFFF)
+
+    def test_a_factory_that_names_nothing_is_refused(self) -> None:
+        with self.assertRaises(ValueError):
+            SerialNumber.from_str("T0006V0106F09L00N0001")
+
+
+class TestShortenedSerialNumbers(unittest.TestCase):
+    """A serial number written without its leading zeros is the same serial number."""
+
+    CANONICAL = "T0001V0106F00L00N000B"
+    SHORT = "T1V106F0L0NB"
+
+    def test_the_short_form_reads_as_the_long_one(self) -> None:
+        self.assertEqual(SerialNumber.from_str(self.SHORT), SerialNumber.from_str(self.CANONICAL))
+
+    def test_the_version_halves_survive_being_shortened(self) -> None:
+        """`V0106` is major 1 minor 6, and `V106` drops a zero from the pair.
+
+        It is one field when written down and two when read, so a short version has to be
+        right-aligned into four digits before it is split - otherwise `V106` reads as
+        major 10, minor 6.
+        """
+        serial_number = SerialNumber.from_str(self.SHORT)
+
+        self.assertEqual(serial_number.version_major, 1)
+        self.assertEqual(serial_number.version_minor, 6)
+
+    def test_anything_between_the_two_forms_reads_too(self) -> None:
+        """A serial number is not more or less itself for how many zeros were typed."""
+        for written in ("T01V0106F0L00N00B", "T0001V106F00L0N000B", "T1V0106F00L00N0B"):
+            with self.subTest(written=written):
+                self.assertEqual(
+                    SerialNumber.from_str(written), SerialNumber.from_str(self.CANONICAL)
+                )
+
+    def test_it_still_prints_in_full(self) -> None:
+        """Reading the short form is a convenience; the written form does not change."""
+        self.assertEqual(str(SerialNumber.from_str(self.SHORT)), self.CANONICAL)
+
+    def test_a_field_wider_than_it_should_be_is_refused(self) -> None:
+        """Shortening relaxes how few digits a field may have, not how many."""
+        for written in ("T00001V0106F00L00N000B", "T0001V00106F00L00N000B"):
+            with self.subTest(written=written):
+                with self.assertRaises(ValueError):
+                    SerialNumber.from_str(written)
+
+    def test_an_empty_field_is_refused(self) -> None:
+        """Every field still has to be there, however short."""
+        with self.assertRaises(ValueError):
+            SerialNumber.from_str("TV106F0L0NB")
+
+
+class TestUnittestFactory(unittest.TestCase):
+    """`Factory.unittest` names what made a serial number up."""
+
+    def test_it_is_the_value_no_real_factory_will_take(self) -> None:
+        """A made-up serial number that escapes somewhere real should be recognisable.
+
+        255 fills the field, which is one byte wide, so there is nothing above it for a
+        real factory to be given later.
+        """
+        self.assertEqual(Factory.unittest, 0xFF)
+        self.assertNotIn(0xFF, {Factory.office, Factory.pcbway})
+
+    def test_a_serial_number_made_at_it_round_trips(self) -> None:
+        serial_number = SerialNumber(ProductType.trilobot, 1, 2, Factory.unittest, 0, 1)
+
+        self.assertIs(SerialNumber.from_str(str(serial_number)).factory, Factory.unittest)
+
+
+class TestGenerateSerialNumbers(unittest.TestCase):
+    """Serial numbers for tests and mocks: well-formed, and all different."""
+
+    def test_every_one_differs(self) -> None:
+        """A constant would make two mock boards indistinguishable."""
+        taken = [next(generate_serial_numbers(ProductType.trilobot)) for _ in range(5)]
+
+        self.assertEqual(len(set(taken)), len(taken))
+
+    def test_two_generators_never_collide(self) -> None:
+        """The counter is shared, so interleaving two kinds stays unique."""
+        robots = generate_serial_numbers(ProductType.trilobot)
+        frames = generate_serial_numbers(ProductType.frame)
+
+        taken = [next(robots), next(frames), next(robots), next(frames)]
+
+        self.assertEqual(len(set(taken)), len(taken))
+
+    def test_what_is_generated_is_marked_as_made_up(self) -> None:
+        """Nothing real is made at `Factory.unittest`, so a leak is recognisable."""
+        self.assertIs(next(generate_serial_numbers(ProductType.trilobot)).factory, Factory.unittest)
+
+    def test_what_is_generated_says_what_it_was_asked_for(self) -> None:
+        serial_number = next(
+            generate_serial_numbers(ProductType.frame, version_major=1, version_minor=6)
+        )
+
+        self.assertIs(serial_number.product_type, ProductType.frame)
+        self.assertEqual((serial_number.version_major, serial_number.version_minor), (1, 6))
+
+    def test_what_is_generated_round_trips(self) -> None:
+        """They stand in for real serial numbers, so they have to behave like them."""
+        serial_number = next(generate_serial_numbers(ProductType.tool_pcb))
+
+        self.assertEqual(SerialNumber.from_str(str(serial_number)), serial_number)
+
+
+class TestSerialNumberInPydanticModels(unittest.TestCase):
+    """A serial number travels as the string it is written as."""
+
+    class Model(pydantic.BaseModel):
+        """A model holding one, configured as the repos that will hold them are."""
+
+        model_config = pydantic.ConfigDict(strict=True, extra="ignore")
+
+        serial_number: SerialNumber
+
+    def setUp(self) -> None:
+        self.serial_number = SerialNumber(ProductType.frame, 1, 6, Factory.office, 0, 1)
+        self.model = self.Model(serial_number=self.serial_number)
+
+    def test_it_serializes_as_its_string(self) -> None:
+        """Not as the six fields it is made of, which is what pydantic does unasked."""
+        self.assertEqual(
+            self.model.model_dump_json(), f'{{"serial_number":"{self.serial_number}"}}'
+        )
+
+    def test_it_validates_from_its_string(self) -> None:
+        parsed = self.Model.model_validate_json(f'{{"serial_number": "{self.serial_number}"}}')
+
+        self.assertEqual(parsed.serial_number, self.serial_number)
+
+    def test_it_validates_from_a_shortened_string(self) -> None:
+        """Whatever `from_str` reads, a model reads."""
+        parsed = self.Model.model_validate({"serial_number": "T6V106F0L0N1"})
+
+        self.assertEqual(parsed.serial_number, self.serial_number)
+
+    def test_it_round_trips(self) -> None:
+        reread = self.Model.model_validate_json(self.model.model_dump_json())
+
+        self.assertEqual(reread.serial_number, self.serial_number)
+        self.assertIsInstance(reread.serial_number, SerialNumber)
+
+    def test_it_describes_itself_as_a_string(self) -> None:
+        """A plain validator has no JSON schema of its own, and anything generating
+        OpenAPI from a model holding one would fail to start without this."""
+        field = self.Model.model_json_schema()["properties"]["serial_number"]
+
+        self.assertEqual(field["type"], "string")
+
+    def test_what_is_not_a_serial_number_is_refused(self) -> None:
+        for value in (42, None, ["T0006V0106F00L00N0001"]):
+            with self.subTest(value=value):
+                with self.assertRaises(pydantic.ValidationError):
+                    self.Model.model_validate({"serial_number": value})
+
+    def test_a_string_that_is_not_a_serial_number_is_refused(self) -> None:
+        """Including one whose product type names nothing, which `from_str` refuses."""
+        for value in ("nonsense", "T0000V0106F00L00N0001"):
+            with self.subTest(value=value):
+                with self.assertRaises(pydantic.ValidationError):
+                    self.Model.model_validate({"serial_number": value})
 
 
 class TestSanitizeSerialNumberInput(unittest.TestCase):
