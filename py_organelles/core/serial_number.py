@@ -8,8 +8,10 @@ This decision was made to avoid the following circular dependency between `confi
 
 import ctypes
 import enum
+import itertools
 import re
 import struct
+from collections.abc import Iterator
 from typing import Iterable, NamedTuple, Self
 
 
@@ -86,10 +88,58 @@ class SerialNumber(NamedTuple):
         return cls.from_int(struct.unpack(_serial_number_struct_format_str, data)[0])
 
     @classmethod
+    def _build(
+        cls,
+        product_type: int,
+        version_major: int,
+        version_minor: int,
+        factory: int,
+        line: int,
+        index: int,
+    ) -> Self:
+        """Assemble a serial number from the raw fields, converting the two enums.
+
+        The annotations on `product_type` and `factory` say `ProductType` and `Factory`,
+        and `NamedTuple` does not enforce them - so a serial number assembled from raw
+        fields would hold plain ints while one built by the constructor holds members.
+        The two compare equal, both being `IntEnum`, so nothing notices until something
+        compares a field with `is`, which then passes every test built from the
+        constructor and is wrong on every serial number parsed from a string.
+
+        :param product_type: What the thing is.
+        :param version_major: Hardware major version.
+        :param version_minor: Hardware minor version.
+        :param factory: Where it was made.
+        :param line: Which line made it, meaning whatever that factory says it means.
+        :param index: Which one it is.
+
+        :raises ValueError: If *product_type* or *factory* names no member. Unknown
+            hardware is a thing to add to the enum, not to carry as a bare number.
+
+        :return: The serial number, with both enums as members.
+        """
+        return cls(
+            product_type=ProductType(product_type),
+            version_major=version_major,
+            version_minor=version_minor,
+            factory=Factory(factory),
+            line=line,
+            index=index,
+        )
+
+    @classmethod
     def from_int(cls, sn: int) -> Self:
+        """Read a serial number out of its packed integer form.
+
+        :param sn: The packed form, as `pack` produces it.
+
+        :raises ValueError: If the product type or factory names no member.
+
+        :return: The serial number.
+        """
         # struct.unpack is for nerds
-        return cls._make(
-            reversed(
+        return cls._build(
+            *reversed(
                 [
                     sn % 2**16,  # index
                     (r := sn >> 16) % 2**8,  # line
@@ -103,6 +153,15 @@ class SerialNumber(NamedTuple):
 
     @classmethod
     def from_str(cls, s: str) -> Self:
+        """Read a serial number out of its canonical string form.
+
+        :param s: The string, as `__str__` produces it.
+
+        :raises ValueError: If *s* is not a serial number at all, or if its product type
+            or factory names no member.
+
+        :return: The serial number.
+        """
         m = re.fullmatch(
             "T([0-9A-F]{4})V([0-9A-F]{2})([0-9A-F]{2})F([0-9A-F]{2})L([0-9A-F]{2})N([0-9A-F]{4})",
             s,
@@ -111,7 +170,7 @@ class SerialNumber(NamedTuple):
         if m is None:
             raise ValueError(f"{s} is not a valid serial number")
 
-        return cls._make(map(lambda v: int(v, 16), m.groups()))
+        return cls._build(*(int(group, 16) for group in m.groups()))
 
     def __int__(self):
         return self.pack()
@@ -172,3 +231,45 @@ def sanitize_serial_number_input(raw_input: RawSerialNumberListInput) -> list[Se
         raise ExceptionGroup("One or more serial number inputs were invalid.", exceptions)
 
     return cleaned_serial_numbers
+
+
+#: Shared by every generator, so that two of them never hand out the same serial number.
+_generated_indices = itertools.count(1)
+
+
+def generate_serial_numbers(
+    product_type: ProductType,
+    version_major: int = 1,
+    version_minor: int = 0,
+    factory: Factory = Factory.office,
+    line: int = 0,
+) -> Iterator[SerialNumber]:
+    """Yield serial numbers of a given kind, each one different from the last.
+
+    For tests and mocks, which need serial numbers that are well-formed and tell each
+    other apart but whose values mean nothing. Reaching for a constant instead gives
+    every mock board the same serial number, which makes two of them indistinguishable
+    exactly where a test is trying to tell them apart.
+
+    The index comes from a counter shared by every generator in the process, so two
+    generators - of the same product type or not - never collide, and a caller can take
+    one more whenever it needs a serial number that is deliberately not among the others.
+
+    :param product_type: What the generated serial numbers say they are.
+    :param version_major: Hardware major version.
+    :param version_minor: Hardware minor version.
+    :param factory: Where the generated serial numbers say they were made.
+    :param line: Which line made them.
+
+    :return: An endless stream of serial numbers differing only in index. The index is 16
+        bits wide, so one process must not take more than 65535 of them.
+    """
+    for index in _generated_indices:
+        yield SerialNumber(
+            product_type=product_type,
+            version_major=version_major,
+            version_minor=version_minor,
+            factory=factory,
+            line=line,
+            index=index,
+        )

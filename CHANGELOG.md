@@ -3,6 +3,31 @@
 All notable changes to this project will be documented here.
 Format: [Semantic Versioning](https://semver.org)
 
+## [Unreleased]
+
+### Fixed
+
+#### `core` Submodule
+- **Breaking.** `SerialNumber.from_str`, `from_int` and `from_bytes` now build `ProductType`
+  and `Factory` members, rather than leaving the raw ints the annotations claimed were enums.
+  A parsed serial number and a constructed one held different types in those two fields and
+  compared equal anyway, both enums being `IntEnum` - so `is` against a member passed every
+  test built from the constructor and was wrong on every serial number read off the wire.
+  A product type or factory naming no member is now refused rather than carried: unknown
+  hardware is a thing to add to the enum. Callers relying on a placeholder such as
+  `from_int(0)`, or on parsing an unprogrammed board's all-ones flash, must change.
+
+### Added
+
+#### `core` Submodule
+- `generate_serial_numbers(product_type, ...)`, yielding well-formed serial numbers that
+  differ from one another, for tests and mocks. The index comes from a counter shared by
+  every generator in the process, so two of them never collide. Reaching for a constant
+  instead makes two mock boards indistinguishable exactly where something is trying to tell
+  them apart.
+
+---
+
 ## [v3.0.0]
 
 ### Changed
