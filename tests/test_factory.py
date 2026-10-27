@@ -51,14 +51,16 @@ class TestMultiBuilderObjectFactory(unittest.TestCase):
         whether the key happened to name a kind. It never did, so a second registration
         silently replaced the first - the opposite of what ``override=False`` promises.
         """
-        with self.assertRaises(BuilderExistsError) as ctx:
-            self.factory.register_builder("from_thing", "a", lambda: "other")
+        with self.assertLogs("py_organelles.core.factory", level="ERROR"):
+            with self.assertRaises(BuilderExistsError) as ctx:
+                self.factory.register_builder("from_thing", "a", lambda: "other")
         self.assertEqual(ctx.exception.factory_key, "a")
 
     def test_duplicate_registration_does_not_overwrite(self) -> None:
         """What the silent overwrite actually cost: the first builder was lost."""
-        with self.assertRaises(BuilderExistsError):
-            self.factory.register_builder("from_thing", "a", lambda: "other")
+        with self.assertLogs("py_organelles.core.factory", level="ERROR"):
+            with self.assertRaises(BuilderExistsError):
+                self.factory.register_builder("from_thing", "a", lambda: "other")
         self.assertEqual(self.factory.build("from_thing", "a"), "built-a")
 
     def test_a_key_matching_a_builder_kind_is_still_registrable(self) -> None:
@@ -71,7 +73,8 @@ class TestMultiBuilderObjectFactory(unittest.TestCase):
         self.assertEqual(self.factory.build("from_thing", "a"), "replaced")
 
     def test_missing_builder_reports_what_was_available(self) -> None:
-        with self.assertRaises(BuilderNotFoundError) as ctx:
-            self.factory.build("from_thing", "nope")
+        with self.assertLogs("py_organelles.core.factory", level="ERROR"):
+            with self.assertRaises(BuilderNotFoundError) as ctx:
+                self.factory.build("from_thing", "nope")
         self.assertEqual(ctx.exception.factory_key, "nope")
         self.assertEqual(ctx.exception.builder_keys, ["a"])

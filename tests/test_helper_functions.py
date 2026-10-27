@@ -2,6 +2,7 @@
 
 import io
 import logging
+import logging.handlers
 import pathlib
 import tempfile
 import threading
@@ -27,11 +28,28 @@ class TestSetupDebugLoggers(CleanUpLoggersHandlersTestCase):
         logger.propagate = False
         return logger
 
+    def _quiet(self, listener: logging.handlers.QueueListener) -> io.StringIO:
+        """Point *listener*'s stream handler at a buffer instead of at stderr.
+
+        What these tests log is their fixture, not output: left alone it lands in the
+        middle of the test run's own, where it reads as something having gone wrong.
+
+        :param listener: The listener to quieten.
+
+        :return: What its stream handler writes, should a test want to read it.
+        """
+        buffer = io.StringIO()
+        for handler in listener.handlers:
+            if type(handler) is logging.StreamHandler:
+                handler.setStream(buffer)
+        return buffer
+
     def test_records_reach_file_after_stop(self) -> None:
         """Records logged through the queue are flushed to the file by listener.stop()."""
         logger = self._make_logger("test_helper_functions.flush")
         # Pass a bare logger (not a list) to exercise LoggerList normalization.
         listener = setup_debug_loggers(logger, self.log_fp)
+        self._quiet(listener)
 
         logger.debug("a debug message")
         logger.info("an info message")
@@ -77,6 +95,7 @@ class TestSetupDebugLoggers(CleanUpLoggersHandlersTestCase):
         """When the queue is full, logging does not block and drops are reported."""
         logger = self._make_logger("test_helper_functions.overflow")
         listener = setup_debug_loggers([logger], self.log_fp, queue_size=2)
+        self._quiet(listener)
 
         file_handler = next(
             handler for handler in listener.handlers if isinstance(handler, logging.FileHandler)
