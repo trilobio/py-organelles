@@ -12,6 +12,8 @@ from py_organelles import (
     sanitize_serial_number_input,
 )
 
+_MAX_SERIAL_NUMBER_INT = 0xFFFFFFFFFFFFFFFF  # 64 bits, all ones
+
 
 class TestSerialNumber(unittest.TestCase):
     def test_serial_from_string(self):
@@ -67,6 +69,16 @@ class TestSerialNumber(unittest.TestCase):
         sn = SerialNumber.from_bytes(b)
         self.assertEqual(b, sn.to_bytes())
 
+    def test_max_serial_number_works(self) -> None:
+        """The largest serial number that fits in 64 bits is still a serial number."""
+        sn = SerialNumber.from_int(_MAX_SERIAL_NUMBER_INT)
+        self.assertEqual(sn.product_type, ProductType.unset)
+        self.assertEqual(sn.version_major, 255)
+        self.assertEqual(sn.version_minor, 255)
+        self.assertEqual(sn.factory, Factory.unset)
+        self.assertEqual(sn.line, 255)
+        self.assertEqual(sn.index, 65535)
+
 
 class TestSerialNumberEnums(unittest.TestCase):
     """A serial number holds enum members however it was built."""
@@ -97,7 +109,7 @@ class TestSerialNumberEnums(unittest.TestCase):
             SerialNumber.from_str("T0000V0106F00L00N0001")
 
         with self.assertRaises(ValueError):
-            SerialNumber.from_int(0xFFFFFFFFFFFFFFFF)
+            SerialNumber.from_int(0xFDFFFFFFFFFFFFFF)
 
     def test_a_factory_that_names_nothing_is_refused(self) -> None:
         with self.assertRaises(ValueError):
@@ -159,8 +171,8 @@ class TestUnittestFactory(unittest.TestCase):
         255 fills the field, which is one byte wide, so there is nothing above it for a
         real factory to be given later.
         """
-        self.assertEqual(Factory.unittest, 0xFF)
-        self.assertNotIn(0xFF, {Factory.office, Factory.pcbway})
+        self.assertEqual(Factory.unittest, 0xFE)
+        self.assertNotIn(0xFE, {Factory.office, Factory.pcbway})
 
     def test_a_serial_number_made_at_it_round_trips(self) -> None:
         serial_number = SerialNumber(ProductType.trilobot, 1, 2, Factory.unittest, 0, 1)

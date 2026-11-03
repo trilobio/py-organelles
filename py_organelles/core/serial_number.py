@@ -36,15 +36,18 @@ class ProductType(enum.IntEnum):
     tool_pcb = 4
     fts_pcb = 5
     frame = 6
+    #: Resulting value from SerialNumber.from_int(0xFFFFFFFFFFFFFFFF)
+    unset = 65535
 
 
 class Factory(enum.IntEnum):
     office = 0
     pcbway = 1
 
-    #: Placeholder value to use in unit testing - makes it clear if a test value leaks into
-    #: production.
-    unittest = 255
+    #: Unittest placeholder value - makes it clear if a test value leaks into production.
+    unittest = 254
+    #: Resulting value from SerialNumber.from_int(0xFFFFFFFFFFFFFFFF)
+    unset = 255
 
 
 _serial_number_struct_format_str: str = "<Q"  # little-endian unsigned long long
