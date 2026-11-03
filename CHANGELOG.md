@@ -3,6 +3,14 @@
 All notable changes to this project will be documented here.
 Format: [Semantic Versioning](https://semver.org)
 
+## [v4.2.0]
+
+### Added
+- Full support for `SerialNumber.from_int(0xFFFFFFFFFFFFFFFF)`
+
+### Changed
+- Unittest `Factory` entry went from 255 to 254
+
 ## [v4.1.0]
 
 ### Added
