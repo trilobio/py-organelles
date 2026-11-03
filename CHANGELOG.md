@@ -3,7 +3,7 @@
 All notable changes to this project will be documented here.
 Format: [Semantic Versioning](https://semver.org)
 
-## [Unreleased]
+## [v4.1.0]
 
 ### Added
 

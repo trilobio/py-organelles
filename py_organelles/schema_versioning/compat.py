@@ -576,7 +576,7 @@ def _build_migrator_chain(
 
                     if new_name in names_seen_so_far:
                         raise RuntimeError(
-                            f"Schema renamed to {new_name}, which it was already named. Infinite loop?"
+                            f"Schema renamed from {current_name} to {new_name}, which it was already named. Infinite loop?"
                         )
                     names_seen_so_far.add(new_name)
 
