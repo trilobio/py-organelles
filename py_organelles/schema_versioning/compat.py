@@ -530,6 +530,9 @@ def _build_migrator_chain(
     current_name = incoming_name
     current_version = incoming_schema_version
 
+    # To avoid infinite loop if A is renamed to B is renamed to A
+    names_seen_so_far = {current_name}
+
     continue_traversing: bool = True
     while continue_traversing:
         # Fetch and sequentially store all migrators for current_name starting at current_version.
@@ -564,9 +567,6 @@ def _build_migrator_chain(
 
         # Check for renames in the API history log and update the current_name accordingly
         continue_traversing = False  # Set back to true if we find a rename
-        names_seen_so_far = {
-            current_name
-        }  # To avoid infinite loop if A is renamed to B is renamed to A
         for api_version_str in sorted(context.api_history_log.migrations, key=Version):
             for schema_name in context.api_history_log.migrations[api_version_str]:
                 if schema_name == current_name:
