@@ -20,8 +20,7 @@ Format: [Semantic Versioning](https://semver.org)
   - `unversioned_is_v1` on `load_api_object`, `migrate_data_to_latest`, and
     `migrate_data_to_version`: whether data with no `schema_version` is version 1 of its schema,
     or an `InvalidDataError`. In `load_api_object`, a version looked up from `api_version` takes
-    precedence. A nested schema with no `schema_version` is version 1 if set, and otherwise left
-    as is.
+    precedence.
 - `packaging` dependency.
 
 ---
